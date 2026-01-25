@@ -6,7 +6,16 @@
     <description>Recent content in 并发 on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 14 Jan 2026 16:48:25 +0800</lastBuildDate><atom:link href="https://luzekka.github.io/tags/%E5%B9%B6%E5%8F%91/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 21 Jan 2026 01:48:25 +0800</lastBuildDate><atom:link href="https://luzekka.github.io/tags/%E5%B9%B6%E5%8F%91/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>终极FreeRTOS学习清单</title>
+      <link>https://luzekka.github.io/skills/esp32/ultimate_freertos/</link>
+      <pubDate>Wed, 21 Jan 2026 01:48:25 +0800</pubDate>
+      
+      <guid>https://luzekka.github.io/skills/esp32/ultimate_freertos/</guid>
+      <description>一、FreeRTOS 基础认知（必须 100% 勾完） 1. 内核模型与调度机制  能清楚说出 FreeRTOS 是 抢占式实时内核 判定标准： - 能解释什么是抢占 - 能说明 configUSE_PREEMPTION 的作用 能解释 任务切换发生的三种条件 - Tick 中断 - API 主动触发（如 vTaskDelay） - 高优先级任务就绪 判定标准： - 不看资料，能口述完整流程 能解释 优先级调度 + 时间片轮转 判定标准： - 能解释“同优先级任务为什么都会运行”   2. Tick、中断与时间概念  明确 Tick 的来源（SysTick / esp_timer / SYSTIMER） 判定标准： - 能说清 ESP32 的 Tick 不是传统 SysTick 能计算 Tick → 实际时间 判定标准： - 知道 configTICK_RATE_HZ - 能算 vTaskDelay(100) 是多少 ms 明确 Tick 中断 不能做什么 判定标准： - 能说出为什么 ISR 不能阻塞   二、Task（任务）系统（核心能力） 3.</description>
+    </item>
+    
     <item>
       <title>如何优雅地杀死一个线程</title>
       <link>https://luzekka.github.io/posts/hello-world/</link>

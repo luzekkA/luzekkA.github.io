@@ -2,24 +2,35 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://luzekka.github.io/skills/esp32/</loc>
+    <lastmod>2026-01-21T01:48:25+08:00</lastmod>
+  </url><url>
     <loc>https://luzekka.github.io/tags/freertos/</loc>
-    <lastmod>2026-01-14T16:48:25+08:00</lastmod>
+    <lastmod>2026-01-21T01:48:25+08:00</lastmod>
   </url><url>
     <loc>https://luzekka.github.io/</loc>
-    <lastmod>2026-01-14T16:48:25+08:00</lastmod>
-  </url><url>
-    <loc>https://luzekka.github.io/posts/</loc>
-    <lastmod>2026-01-14T16:48:25+08:00</lastmod>
+    <lastmod>2026-01-21T01:48:25+08:00</lastmod>
   </url><url>
     <loc>https://luzekka.github.io/tags/</loc>
+    <lastmod>2026-01-21T01:48:25+08:00</lastmod>
+  </url><url>
+    <loc>https://luzekka.github.io/tags/%E5%B9%B6%E5%8F%91/</loc>
+    <lastmod>2026-01-21T01:48:25+08:00</lastmod>
+  </url><url>
+    <loc>https://luzekka.github.io/skills/</loc>
+    <lastmod>2026-01-21T01:48:25+08:00</lastmod>
+  </url><url>
+    <loc>https://luzekka.github.io/skills/esp32/ultimate_freertos/</loc>
+    <lastmod>2026-01-21T01:48:25+08:00</lastmod>
+  </url><url>
+    <loc>https://luzekka.github.io/posts/</loc>
     <lastmod>2026-01-14T16:48:25+08:00</lastmod>
   </url><url>
     <loc>https://luzekka.github.io/posts/hello-world/</loc>
     <lastmod>2026-01-14T16:48:25+08:00</lastmod>
   </url><url>
-    <loc>https://luzekka.github.io/tags/%E5%B9%B6%E5%8F%91/</loc>
-    <lastmod>2026-01-14T16:48:25+08:00</lastmod>
-  </url><url>
     <loc>https://luzekka.github.io/categories/</loc>
+  </url><url>
+    <loc>https://luzekka.github.io/skills/esp32/freertos/</loc>
   </url>
 </urlset>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>My New Hugo Site</title>
-    <link>https://luzekka.github.io/</link>
-    <description>Recent content on My New Hugo Site</description>
+    <title>ESP32 技能清单 on My New Hugo Site</title>
+    <link>https://luzekka.github.io/skills/esp32/</link>
+    <description>Recent content in ESP32 技能清单 on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 21 Jan 2026 01:48:25 +0800</lastBuildDate><atom:link href="https://luzekka.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 21 Jan 2026 01:48:25 +0800</lastBuildDate><atom:link href="https://luzekka.github.io/skills/esp32/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>终极FreeRTOS学习清单</title>
       <link>https://luzekka.github.io/skills/esp32/ultimate_freertos/</link>
@@ -14,20 +14,6 @@
       
       <guid>https://luzekka.github.io/skills/esp32/ultimate_freertos/</guid>
       <description>一、FreeRTOS 基础认知（必须 100% 勾完） 1. 内核模型与调度机制  能清楚说出 FreeRTOS 是 抢占式实时内核 判定标准： - 能解释什么是抢占 - 能说明 configUSE_PREEMPTION 的作用 能解释 任务切换发生的三种条件 - Tick 中断 - API 主动触发（如 vTaskDelay） - 高优先级任务就绪 判定标准： - 不看资料，能口述完整流程 能解释 优先级调度 + 时间片轮转 判定标准： - 能解释“同优先级任务为什么都会运行”   2. Tick、中断与时间概念  明确 Tick 的来源（SysTick / esp_timer / SYSTIMER） 判定标准： - 能说清 ESP32 的 Tick 不是传统 SysTick 能计算 Tick → 实际时间 判定标准： - 知道 configTICK_RATE_HZ - 能算 vTaskDelay(100) 是多少 ms 明确 Tick 中断 不能做什么 判定标准： - 能说出为什么 ISR 不能阻塞   二、Task（任务）系统（核心能力） 3.</description>
-    </item>
-    
-    <item>
-      <title>如何优雅地杀死一个线程</title>
-      <link>https://luzekka.github.io/posts/hello-world/</link>
-      <pubDate>Wed, 14 Jan 2026 16:48:25 +0800</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/hello-world/</guid>
-      <description>如何优雅地杀死一个线程 在 FreeRTOS 的实际工程中**“结束一个 task”**远比表面上看起来复杂。
-很多开发者在初期都会选择最直接的方式：
-vTaskDelete(task_handle); 在低负载、低并发、功能简单的 Demo 中，这种做法往往不会立即出问题。 但在多线程、高负载、资源密集的系统中，这种“硬删除”方式，极容易引发隐蔽而致命的问题。
-本文将结合一个真实的 FreeRTOS 使用场景，说明：
- 为什么 vTaskDelete() 在工程中是危险的 问题通常是如何被触发的 什么才是**“优雅结束一个 task”**的正确方式 为什么 Task Notify 是最轻量、最安全的方案之一   问题背景：一个看似无害的发送任务 下面是一个典型的 FreeRTOS task，用于从队列中取数据并通过 WebSocket 发送：
-void ws_send_task(void *arg) { ws_sender_ctx_t *ctx = (ws_sender_ctx_t *)arg; jpeg_msg_t msg; while (1) { if (xQueueReceive(ctx-&amp;gt;queue, &amp;amp;msg, portMAX_DELAY) == pdPASS) { ws_send_all(msg.buf, msg.len, ctx-&amp;gt;sendType, ctx-&amp;gt;channel); if (msg.buf) { heap_caps_free(msg.buf); } // 避免在高负载下持续占用 CPU  vTaskDelay(1); } } } 这个 task 看起来非常“规矩”：</description>
     </item>
     
     <item>
