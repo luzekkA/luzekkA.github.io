@@ -1,8 +1,8 @@
-# Hugo build output
-/public/
+# # Hugo build output
+# /public/
 
-# Hugo generated resources cache
-/resources/_gen/
+# # Hugo generated resources cache
+# /resources/_gen/
 
 .vscode/
 .idea/
