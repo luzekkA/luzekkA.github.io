@@ -1,0 +1,19 @@
+# Hugo build output
+/public/
+
+# Hugo generated resources cache
+/resources/_gen/
+
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Node / frontend deps (some themes use npm)
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+

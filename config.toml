@@ -1,0 +1,12 @@
+baseURL = 'https://luzekka.github.io/'
+languageCode = 'zh-cn'
+title = 'My New Hugo Site'
+theme = 'terminal'
+
+[menu]
+
+  [[menu.main]]
+    name = "Skills"
+    url = "/skills/"
+    weight = 1
+
