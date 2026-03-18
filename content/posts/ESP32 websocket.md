@@ -1,6 +1,12 @@
+---
+title: "ESP32 websocket"
+date: 2026-02-20T17:46:18+08:00
+draft: true
+tags: ["C语言", "编译器", "链接", "操作系统"]
+categories: ["底层原理"]
+---
+
 # ESP32 websocket
-
-
 
 ## 启动webserver
 

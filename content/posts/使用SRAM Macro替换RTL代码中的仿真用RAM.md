@@ -1,10 +1,12 @@
-# 使用SRAM Macro替换RTL代码中的仿真用RAM
-
-
-
-[TOC]
-
-
+---
+title: "使用SRAM Macro替换RTL代码中的仿真用RAM"
+date: 2026-03-18T16:20:42+08:00
+draft: false
+toc : true
+tags: ["SRAM", "数字电路", "verilog", "MemoryCompiler"]
+categories: ["数字电路"]
+summary: "本文记录了在数字 IC 综合流程中，如何通过 MemoryCompiler 生成物理 SRAM Macro 并替换 RTL 仿真模型的过程。涵盖了从 mapped 网表尺寸提取、SRAM 拼接逻辑实现到 Design Compiler 链路库配置的完整实战路径。"
+---
 
 ## 1.根据处理器实际使用的RAM，使用MemoryCompiler生成RAM的Macro
 
