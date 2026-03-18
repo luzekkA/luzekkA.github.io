@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title> :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="UVC使用 esp_err_t uvc_start(void) { rx_frames_queue = xQueueCreate(3, sizeof(uvc_host_frame_t *)); assert(rx_frames_queue); // Install USB Host driver. Should only be called once in entire application WS_LOGI(&amp;quot;Installing USB Host&amp;quot;); const usb_host_config_t host_config = { .skip_phy_setup = false, .intr_flags = ESP_INTR_FLAG_LEVEL1, }; ESP_ERROR_CHECK(usb_host_install(&amp;amp;host_config)); // Create a task that will handle USB library events BaseType_t task_created = xTaskCreatePinnedToCore(usb_lib_task, &amp;quot;usb_lib&amp;quot;, 4096, NULL, EXAMPLE_USB_HOST_PRIORITY, NULL, tskNO_AFFINITY); assert(task_created == pdTRUE); WS_LOGI(&amp;quot;Installing UVC driver&amp;quot;); const uvc_host_driver_config_t uvc_driver_config = { ." />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="https://luzekka.github.io/posts/uvc/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/syntax.min.a0773cce9310cb6d8ed23e50f005448facf29a53001b57e038828daa466b25c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="https://luzekka.github.io/favicon.png">
+<link rel="apple-touch-icon" href="https://luzekka.github.io/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="">
+<meta property="og:description" content="UVC使用 esp_err_t uvc_start(void) { rx_frames_queue = xQueueCreate(3, sizeof(uvc_host_frame_t *)); assert(rx_frames_queue); // Install USB Host driver. Should only be called once in entire application WS_LOGI(&amp;quot;Installing USB Host&amp;quot;); const usb_host_config_t host_config = { .skip_phy_setup = false, .intr_flags = ESP_INTR_FLAG_LEVEL1, }; ESP_ERROR_CHECK(usb_host_install(&amp;amp;host_config)); // Create a task that will handle USB library events BaseType_t task_created = xTaskCreatePinnedToCore(usb_lib_task, &amp;quot;usb_lib&amp;quot;, 4096, NULL, EXAMPLE_USB_HOST_PRIORITY, NULL, tskNO_AFFINITY); assert(task_created == pdTRUE); WS_LOGI(&amp;quot;Installing UVC driver&amp;quot;); const uvc_host_driver_config_t uvc_driver_config = { ." />
+<meta property="og:url" content="https://luzekka.github.io/posts/uvc/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="https://luzekka.github.io/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://luzekka.github.io/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://luzekka.github.io/posts/uvc/"></a>
+  </h1>
+  <div class="post-meta"></div>
+
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="uvc使用">UVC使用<a href="#uvc使用" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<pre tabindex="0"><code>esp_err_t uvc_start(void)
+{
+    rx_frames_queue = xQueueCreate(3, sizeof(uvc_host_frame_t *));
+    assert(rx_frames_queue);
+
+    // Install USB Host driver. Should only be called once in entire application
+    WS_LOGI(&quot;Installing USB Host&quot;);
+    const usb_host_config_t host_config = {
+        .skip_phy_setup = false,
+        .intr_flags = ESP_INTR_FLAG_LEVEL1,
+    };
+    ESP_ERROR_CHECK(usb_host_install(&amp;host_config));
+
+    // Create a task that will handle USB library events
+    BaseType_t task_created = xTaskCreatePinnedToCore(usb_lib_task, &quot;usb_lib&quot;, 4096, NULL, EXAMPLE_USB_HOST_PRIORITY, NULL, tskNO_AFFINITY);
+    assert(task_created == pdTRUE);
+
+    WS_LOGI(&quot;Installing UVC driver&quot;);
+    const uvc_host_driver_config_t uvc_driver_config = {
+        .driver_task_stack_size = 4 * 1024,
+        .driver_task_priority = EXAMPLE_USB_HOST_PRIORITY + 1,
+        .xCoreID = tskNO_AFFINITY,
+        .create_background_task = true,
+    };
+    ESP_ERROR_CHECK(uvc_host_install(&amp;uvc_driver_config));
+
+    task_created = xTaskCreatePinnedToCore(frame_handling_task, &quot;frame_hdl&quot;, 4096, (void *)&amp;stream_config, EXAMPLE_USB_HOST_PRIORITY - 2, NULL, tskNO_AFFINITY);
+    assert(task_created == pdTRUE);
+    return ESP_OK;
+}
+</code></pre><h2 id="创建队列">创建队列<a href="#创建队列" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h2 id="安装usb驱动">安装USB驱动<a href="#安装usb驱动" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>frame_callback（帧回调）</p>
+<p>触发时机：每收到一帧视频数据时调用（高频）。
+参数内容：带有帧指针 uvc_host_frame_t（frame-&gt;data/len 是 MJPEG/JPEG 原始字节）。
+典型用途：把帧转交给应用层处理（排队、推流、显示、解码等）。
+返回值语义：返回 false 表示“我先留着，稍后自己调用 uvc_host_frame_return 归还”；返回 true 表示“驱动现在就可以回收”。
+注意事项：必须非常快，不要阻塞；若返回 false，就一定要在处理完后调用 uvc_host_frame_return，否则内存耗尽。
+stream_callback（流事件回调）</p>
+<p>触发时机：流状态变化或错误时调用（低频）。
+参数内容：没有帧数据，只有事件类型和相关信息，例如：
+UVC_HOST_TRANSFER_ERROR：传输错误
+UVC_HOST_DEVICE_DISCONNECTED：设备拔出（带 stream 句柄）
+UVC_HOST_FRAME_BUFFER_OVERFLOW/UNDERFLOW：帧缓冲溢出/欠载
+典型用途：管理状态与资源（打印日志、关闭流、准备重连、调整参数如 frame_size/buffer 数量/URB 大小）。
+注意事项：也要快，不要做耗时逻辑；真正的恢复/重试可以交给其他任务做。</p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

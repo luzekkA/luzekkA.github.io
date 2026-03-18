@@ -17,12 +17,12 @@
     </item>
     
     <item>
-      <title>如何优雅地杀死一个线程</title>
-      <link>https://luzekka.github.io/posts/hello-world/</link>
+      <title>如何优雅地结束一个线程Pt1</title>
+      <link>https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</link>
       <pubDate>Wed, 14 Jan 2026 16:48:25 +0800</pubDate>
       
-      <guid>https://luzekka.github.io/posts/hello-world/</guid>
-      <description>如何优雅地杀死一个线程 在 FreeRTOS 的实际工程中**“结束一个 task”**远比表面上看起来复杂。
+      <guid>https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</guid>
+      <description>如何优雅地结束一个线程Pt1 在 FreeRTOS 的实际工程中**“结束一个 task”**远比表面上看起来复杂。
 很多开发者在初期都会选择最直接的方式：
 vTaskDelete(task_handle); 在低负载、低并发、功能简单的 Demo 中，这种做法往往不会立即出问题。 但在多线程、高负载、资源密集的系统中，这种“硬删除”方式，极容易引发隐蔽而致命的问题。
 本文将结合一个真实的 FreeRTOS 使用场景，说明：

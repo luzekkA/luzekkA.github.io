@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>编译器 on My New Hugo Site</title>
+    <link>https://luzekka.github.io/tags/%E7%BC%96%E8%AF%91%E5%99%A8/</link>
+    <description>Recent content in 编译器 on My New Hugo Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 20 Feb 2026 17:46:18 +0800</lastBuildDate><atom:link href="https://luzekka.github.io/tags/%E7%BC%96%E8%AF%91%E5%99%A8/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>从 C 源码到内存布局：编译、链接与启动全过程解析</title>
+      <link>https://luzekka.github.io/posts/c-compile-and-link/</link>
+      <pubDate>Fri, 20 Feb 2026 17:46:18 +0800</pubDate>
+      
+      <guid>https://luzekka.github.io/posts/c-compile-and-link/</guid>
+      <description>[TOC]
+第五部分：虚拟地址空间与内存布局 第11章：栈与堆的底层原理 回顾一下C语言 很好，这一步确实有必要补齐。
+如果不把 栈（stack） 和 堆（heap） 的本质讲清楚，启动代码为什么要先设栈、为什么链接脚本要预留 heap/stack 空间，就会显得“理所当然但没讲透”。
+我们从体系结构 + ABI + 内存布局三个层面讲清楚。
+ 一、先纠正一个常见误解  栈和堆不是 C 语言发明的，而是运行时内存管理策略。
+ C 语言只是“使用”它们。
+真正决定它们存在的是：
+ CPU 调用约定（Calling Convention） ABI 运行时内存布局 链接脚本   二、栈（Stack） 1️⃣ 栈是什么？ 栈是：
+ 一块由 CPU 自动维护的连续内存区域，用于函数调用上下文。
+ 特点：
+ 后进先出（LIFO） 由 SP（Stack Pointer）寄存器指向 通常向低地址增长（ARM/x86 都是）   2️⃣ 栈里存什么？ 以 ARM 为例：
+函数调用时会发生： int foo(int a) { int b = 5; return a + b; } 汇编大致会做：</description>
+    </item>
+    
+    <item>
+      <title>C 源码到硬件执行Pt1——C源码到Bin裸二进制文件</title>
+      <link>https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</guid>
+      <description>本文深入剖析从 C 源码到二进制镜像的转化全过程，解密 ELF 文件如何通过 Section 与 Segment 的双重視角，完成从“逻辑代码”向“硬件物理映射”的跨越。</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>从 C 源码到内存布局：编译、链接与启动全过程解析 :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="[TOC]
+第五部分：虚拟地址空间与内存布局 第11章：栈与堆的底层原理 回顾一下C语言 很好，这一步确实有必要补齐。
+如果不把 栈（stack） 和 堆（heap） 的本质讲清楚，启动代码为什么要先设栈、为什么链接脚本要预留 heap/stack 空间，就会显得“理所当然但没讲透”。
+我们从体系结构 &#43; ABI &#43; 内存布局三个层面讲清楚。
+ 一、先纠正一个常见误解  栈和堆不是 C 语言发明的，而是运行时内存管理策略。
+ C 语言只是“使用”它们。
+真正决定它们存在的是：
+ CPU 调用约定（Calling Convention） ABI 运行时内存布局 链接脚本   二、栈（Stack） 1️⃣ 栈是什么？ 栈是：
+ 一块由 CPU 自动维护的连续内存区域，用于函数调用上下文。
+ 特点：
+ 后进先出（LIFO） 由 SP（Stack Pointer）寄存器指向 通常向低地址增长（ARM/x86 都是）   2️⃣ 栈里存什么？ 以 ARM 为例：
+函数调用时会发生： int foo(int a) { int b = 5; return a &#43; b; } 汇编大致会做：" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="https://luzekka.github.io/posts/c-compile-and-link/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/syntax.min.a0773cce9310cb6d8ed23e50f005448facf29a53001b57e038828daa466b25c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="https://luzekka.github.io/favicon.png">
+<link rel="apple-touch-icon" href="https://luzekka.github.io/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="从 C 源码到内存布局：编译、链接与启动全过程解析">
+<meta property="og:description" content="[TOC]
+第五部分：虚拟地址空间与内存布局 第11章：栈与堆的底层原理 回顾一下C语言 很好，这一步确实有必要补齐。
+如果不把 栈（stack） 和 堆（heap） 的本质讲清楚，启动代码为什么要先设栈、为什么链接脚本要预留 heap/stack 空间，就会显得“理所当然但没讲透”。
+我们从体系结构 &#43; ABI &#43; 内存布局三个层面讲清楚。
+ 一、先纠正一个常见误解  栈和堆不是 C 语言发明的，而是运行时内存管理策略。
+ C 语言只是“使用”它们。
+真正决定它们存在的是：
+ CPU 调用约定（Calling Convention） ABI 运行时内存布局 链接脚本   二、栈（Stack） 1️⃣ 栈是什么？ 栈是：
+ 一块由 CPU 自动维护的连续内存区域，用于函数调用上下文。
+ 特点：
+ 后进先出（LIFO） 由 SP（Stack Pointer）寄存器指向 通常向低地址增长（ARM/x86 都是）   2️⃣ 栈里存什么？ 以 ARM 为例：
+函数调用时会发生： int foo(int a) { int b = 5; return a &#43; b; } 汇编大致会做：" />
+<meta property="og:url" content="https://luzekka.github.io/posts/c-compile-and-link/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="https://luzekka.github.io/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+  <meta property="article:section" content="底层原理" />
+
+
+  <meta property="article:published_time" content="2026-02-20 17:46:18 &#43;0800 CST" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://luzekka.github.io/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://luzekka.github.io/posts/c-compile-and-link/">从 C 源码到内存布局：编译、链接与启动全过程解析</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2026-02-20</time></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="https://luzekka.github.io/tags/c%E8%AF%AD%E8%A8%80/">C语言</a>&nbsp;
+      
+      #<a href="https://luzekka.github.io/tags/%E7%BC%96%E8%AF%91%E5%99%A8/">编译器</a>&nbsp;
+      
+      #<a href="https://luzekka.github.io/tags/%E9%93%BE%E6%8E%A5/">链接</a>&nbsp;
+      
+      #<a href="https://luzekka.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <p>[TOC]</p>
+<h2 id="第五部分虚拟地址空间与内存布局">第五部分：虚拟地址空间与内存布局<a href="#第五部分虚拟地址空间与内存布局" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="第11章栈与堆的底层原理">第11章：栈与堆的底层原理<a href="#第11章栈与堆的底层原理" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="回顾一下c语言">回顾一下C语言<a href="#回顾一下c语言" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>很好，这一步确实有必要补齐。</p>
+<p>如果不把 <strong>栈（stack）</strong> 和 <strong>堆（heap）</strong> 的本质讲清楚，启动代码为什么要先设栈、为什么链接脚本要预留 heap/stack 空间，就会显得“理所当然但没讲透”。</p>
+<p>我们从体系结构 + ABI + 内存布局三个层面讲清楚。</p>
+<hr>
+<h4 id="一先纠正一个常见误解">一、先纠正一个常见误解<a href="#一先纠正一个常见误解" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<blockquote>
+<p>栈和堆不是 C 语言发明的，而是运行时内存管理策略。</p>
+</blockquote>
+<p>C 语言只是“使用”它们。</p>
+<p>真正决定它们存在的是：</p>
+<ul>
+<li>CPU 调用约定（Calling Convention）</li>
+<li>ABI</li>
+<li>运行时内存布局</li>
+<li>链接脚本</li>
+</ul>
+<hr>
+<h4 id="二栈stack">二、栈（Stack）<a href="#二栈stack" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<h4 id="1-栈是什么">1️⃣ 栈是什么？<a href="#1-栈是什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>栈是：</p>
+<blockquote>
+<p>一块由 CPU 自动维护的连续内存区域，用于函数调用上下文。</p>
+</blockquote>
+<p>特点：</p>
+<ul>
+<li>后进先出（LIFO）</li>
+<li>由 SP（Stack Pointer）寄存器指向</li>
+<li>通常向低地址增长（ARM/x86 都是）</li>
+</ul>
+<hr>
+<h4 id="2-栈里存什么">2️⃣ 栈里存什么？<a href="#2-栈里存什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>以 ARM 为例：</p>
+<h4 id="函数调用时会发生">函数调用时会发生：<a href="#函数调用时会发生" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<pre tabindex="0"><code>int foo(int a) {
+    int b = 5;
+    return a + b;
+}
+</code></pre><p>汇编大致会做：</p>
+<pre tabindex="0"><code>push {lr}       ; 保存返回地址
+sub sp, sp, #4  ; 给 b 分配空间
+...
+add sp, sp, #4
+pop {pc}
+</code></pre><p>栈中存：</p>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>返回地址</td>
+<td>函数返回用</td>
+</tr>
+<tr>
+<td>保存寄存器</td>
+<td>遵守 ABI</td>
+</tr>
+<tr>
+<td>局部变量</td>
+<td>自动变量</td>
+</tr>
+<tr>
+<td>函数参数（部分）</td>
+<td>视 ABI</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="3-为什么启动代码必须先设栈">3️⃣ 为什么启动代码必须先设栈？<a href="#3-为什么启动代码必须先设栈" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>因为：</p>
+<ul>
+<li>函数调用一定会访问栈</li>
+<li>C 语言任何函数都依赖栈</li>
+</ul>
+<p>如果 SP 不合法：</p>
+<ul>
+<li>push 会写到 0 地址</li>
+<li>会触发 HardFault / SegFault</li>
+</ul>
+<p>所以 Reset_Handler 的第一条指令通常是：</p>
+<pre tabindex="0"><code>ldr sp, =_stack_top
+</code></pre><hr>
+<h4 id="4-栈是自动内存">4️⃣ 栈是“自动内存”<a href="#4-栈是自动内存" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>它的生命周期：</p>
+<ul>
+<li>函数进入 → 分配</li>
+<li>函数退出 → 自动释放</li>
+</ul>
+<p>特点：</p>
+<ul>
+<li>分配快（只是移动 SP）</li>
+<li>无碎片</li>
+<li>空间有限</li>
+<li>不能跨函数长期存在</li>
+</ul>
+<hr>
+<h4 id="三堆heap">三、堆（Heap）<a href="#三堆heap" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<h4 id="1-堆是什么">1️⃣ 堆是什么？<a href="#1-堆是什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>堆是：</p>
+<blockquote>
+<p>一块由程序员动态申请、运行时分配器管理的内存区域。</p>
+</blockquote>
+<p>典型 API：</p>
+<pre tabindex="0"><code>malloc()
+free()
+</code></pre><hr>
+<h4 id="2-堆由谁管理">2️⃣ 堆由谁管理？<a href="#2-堆由谁管理" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<ul>
+<li>Linux：glibc malloc</li>
+<li>裸机：newlib 或自己实现</li>
+<li>RTOS：自己的分配器</li>
+</ul>
+<p>底层依赖：</p>
+<pre tabindex="0"><code>sbrk()
+</code></pre><p>或你自己实现的 <code>_sbrk</code></p>
+<hr>
+<h4 id="3-堆在内存中的位置">3️⃣ 堆在内存中的位置？<a href="#3-堆在内存中的位置" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>典型裸机布局：</p>
+<pre tabindex="0"><code>RAM:
+---------------------------------
+| .data                        |
+| .bss                         |
+| heap  ↑ 向上增长             |
+|                               |
+|                               |
+| stack ↓ 向下增长             |
+---------------------------------
+</code></pre><p>heap 从低地址向上增长
+stack 从高地址向下增长</p>
+<p>中间如果相撞：</p>
+<blockquote>
+<p>heap overflow / stack overflow</p>
+</blockquote>
+<hr>
+<h3 id="四栈-vs-堆-对比">四、栈 vs 堆 对比<a href="#四栈-vs-堆-对比" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>栈</th>
+<th>堆</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>管理方式</td>
+<td>CPU 自动</td>
+<td>malloc/free</td>
+</tr>
+<tr>
+<td>生命周期</td>
+<td>函数作用域</td>
+<td>手动控制</td>
+</tr>
+<tr>
+<td>分配速度</td>
+<td>极快</td>
+<td>较慢</td>
+</tr>
+<tr>
+<td>是否碎片化</td>
+<td>不会</td>
+<td>会</td>
+</tr>
+<tr>
+<td>大小</td>
+<td>较小</td>
+<td>取决于RAM</td>
+</tr>
+<tr>
+<td>是否需要启动代码</td>
+<td>必须</td>
+<td>取决于是否用 malloc</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="五为什么启动代码一般不管堆">五、为什么启动代码一般不管堆？<a href="#五为什么启动代码一般不管堆" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>因为：</p>
+<ul>
+<li>堆不是 CPU 必需的</li>
+<li>只有当你调用 malloc 才需要</li>
+<li>裸机下很多程序根本不用 heap</li>
+</ul>
+<p>但是：</p>
+<p>链接脚本通常会：</p>
+<pre tabindex="0"><code>_heap_start = .;
+. += 0x1000;
+_heap_end = .;
+</code></pre><p>只是预留空间。</p>
+<p>真正的堆初始化通常发生在：</p>
+<pre tabindex="0"><code>__libc_init_array
+或
+_sbrk 初始化
+</code></pre><hr>
+<h4 id="六为什么栈是必须的而堆不是">六、为什么栈是必须的，而堆不是？<a href="#六为什么栈是必须的而堆不是" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>因为：</p>
+<p>函数调用是语言核心语义</p>
+<p>而 malloc 不是。</p>
+<p>没有堆：</p>
+<p>程序还能运行</p>
+<p>没有栈：</p>
+<p>程序根本无法执行函数</p>
+<h2 id="议插入的内容小结c-语言的逻辑内存模型">议插入的内容：小结——C 语言的逻辑内存模型<a href="#议插入的内容小结c-语言的逻辑内存模型" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>通过前面的分析，我们可以把 C 语言程序运行时的内存布局总结为经典的**“五大分区”**。这个模型是跨平台的，无论是在 Linux 还是在裸机嵌入式系统中，其逻辑结构高度一致：</p>
+<h3 id="1-内存模型全景图">1. 内存模型全景图<a href="#1-内存模型全景图" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<table>
+<thead>
+<tr>
+<th><strong>分区名称</strong></th>
+<th><strong>对应 ELF Section</strong></th>
+<th><strong>存放内容</strong></th>
+<th><strong>生命周期</strong></th>
+<th><strong>读写属性</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>代码段 (Code/Text)</strong></td>
+<td><code>.text</code></td>
+<td>机器指令、只读常量</td>
+<td>永久（随进程）</td>
+<td>只读/可执行</td>
+</tr>
+<tr>
+<td><strong>数据段 (Data)</strong></td>
+<td><code>.data</code></td>
+<td>已初始化的全局/静态变量</td>
+<td>永久（随进程）</td>
+<td>可读写</td>
+</tr>
+<tr>
+<td><strong>BSS 段</strong></td>
+<td><code>.bss</code></td>
+<td>未初始化（或初始化为0）的全局/静态变量</td>
+<td>永久（随进程）</td>
+<td>可读写</td>
+</tr>
+<tr>
+<td><strong>堆 (Heap)</strong></td>
+<td>无直接对应 (运行时由管理函数分配)</td>
+<td>动态申请的内存 (<code>malloc</code>)</td>
+<td>手动控制</td>
+<td>可读写</td>
+</tr>
+<tr>
+<td><strong>栈 (Stack)</strong></td>
+<td>无直接对应 (由系统/启动代码预留)</td>
+<td>局部变量、函数参数、返回地址</td>
+<td>函数作用域</td>
+<td>可读写</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-动静结合的视角">2. “动静结合”的视角<a href="#2-动静结合的视角" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li><strong>静态区（Text, Data, BSS）：</strong> 它们的大小在<strong>链接阶段</strong>就已经完全确定了。链接脚本里的每一个地址分配，都是在为这三个区画地盘。</li>
+<li><strong>动态区（Stack, Heap）：</strong> 它们的大小在运行时是<strong>变动</strong>的。栈向下长，堆向上长，它们共同瓜分剩下的 RAM 空间。</li>
+</ul>
+<h3 id="3-为什么-c-程序员必须理解这个模型">3. 为什么 C 程序员必须理解这个模型？<a href="#3-为什么-c-程序员必须理解这个模型" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>理解了这个模型，很多“神鬼莫测”的 Bug 就会变成常识：</p>
+<ul>
+<li><strong>为什么全局变量没初始化默认是 0？</strong> 因为启动代码在跳转到 <code>main</code> 之前，把整个 <code>.bss</code> 段都清零了。</li>
+<li><strong>为什么局部变量不初始化是随机值？</strong> 因为局部变量在栈上，栈只是移动了 <code>SP</code> 指针，并没有清理上一个函数留下的“垃圾”数据。</li>
+<li><strong>为什么不能返回局部变量的地址？</strong> 因为函数退出后，栈帧被销毁，那个地址虽然还在，但里面的内容随时会被下一个函数调用覆盖。</li>
+<li><strong>什么是“栈溢出” (Stack Overflow)？</strong> 就是函数调用太深（如死递归），导致栈指针一路向下，撞到了堆区或者 BSS 段的边界。</li>
+</ul>
+<p>在下一张来到最硬核的实战篇。我们将撕开 C 语言的温情面纱，直击**启动代码（Startup Code）<strong>与</strong>链接脚本（Linker Script）**的战场。看程序如何在荒芜的硬件上，一砖一瓦地盖起那座名为“运行时环境”的大厦。</p>
+<h2 id="第四部分程序真正的入口">第四部分：程序真正的入口<a href="#第四部分程序真正的入口" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="链接脚本与-entry-指令">链接脚本与 ENTRY 指令<a href="#链接脚本与-entry-指令" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>gcc 默认ld</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">lzk@lzk-Virtual-Machine:~$ gcc -Wl,--verbose hello.c -o hello
+GNU ld <span style="color:#f92672">(</span>GNU Binutils <span style="color:#66d9ef">for</span> Ubuntu<span style="color:#f92672">)</span> 2.38
+  支持的仿真：
+   elf_x86_64
+   elf32_x86_64
+   elf_i386
+   elf_iamcu
+   elf_l1om
+   elf_k1om
+   i386pep
+   i386pe
+使用内部链接脚本：
+<span style="color:#f92672">==================================================</span>
+/* Script <span style="color:#66d9ef">for</span> -pie -z combreloc -z separate-code -z relro -z now */
+/* Copyright <span style="color:#f92672">(</span>C<span style="color:#f92672">)</span> 2014-2022 Free Software Foundation, Inc.
+   Copying and distribution of this script, with or without modification,
+   are permitted in any medium without royalty provided the copyright
+   notice and this notice are preserved.  */
+OUTPUT_FORMAT<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;elf64-x86-64&#34;</span>, <span style="color:#e6db74">&#34;elf64-x86-64&#34;</span>,
+	      <span style="color:#e6db74">&#34;elf64-x86-64&#34;</span><span style="color:#f92672">)</span>
+OUTPUT_ARCH<span style="color:#f92672">(</span>i386:x86-64<span style="color:#f92672">)</span>
+ENTRY<span style="color:#f92672">(</span>_start<span style="color:#f92672">)</span>
+SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/local/lib/x86_64-linux-gnu&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/lib/x86_64-linux-gnu&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/lib/x86_64-linux-gnu&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/lib/x86_64-linux-gnu64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/local/lib64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/lib64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/lib64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/local/lib&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/lib&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/lib&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/x86_64-linux-gnu/lib64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/x86_64-linux-gnu/lib&#34;</span><span style="color:#f92672">)</span>;
+SECTIONS
+<span style="color:#f92672">{</span>
+  PROVIDE <span style="color:#f92672">(</span>__executable_start <span style="color:#f92672">=</span> SEGMENT_START<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;text-segment&#34;</span>, 0<span style="color:#f92672">))</span>; . <span style="color:#f92672">=</span> SEGMENT_START<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;text-segment&#34;</span>, 0<span style="color:#f92672">)</span> + SIZEOF_HEADERS;
+  .interp         : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.interp<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .note.gnu.build-id  : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.note.gnu.build-id<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .hash           : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.hash<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gnu.hash       : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.hash<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .dynsym         : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.dynsym<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .dynstr         : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.dynstr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gnu.version    : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.version<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gnu.version_d  : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.version_d<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gnu.version_r  : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.version_r<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .rela.dyn       :
+    <span style="color:#f92672">{</span>
+      *<span style="color:#f92672">(</span>.rela.init<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.text .rela.text.* .rela.gnu.linkonce.t.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.fini<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.data .rela.data.* .rela.gnu.linkonce.d.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.ctors<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.dtors<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.got<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.ldata .rela.ldata.* .rela.gnu.linkonce.l.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.lbss .rela.lbss.* .rela.gnu.linkonce.lb.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.lrodata .rela.lrodata.* .rela.gnu.linkonce.lr.*<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.ifunc<span style="color:#f92672">)</span>
+    <span style="color:#f92672">}</span>
+  .rela.plt       :
+    <span style="color:#f92672">{</span>
+      *<span style="color:#f92672">(</span>.rela.plt<span style="color:#f92672">)</span>
+      *<span style="color:#f92672">(</span>.rela.iplt<span style="color:#f92672">)</span>
+    <span style="color:#f92672">}</span>
+  .relr.dyn : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.relr.dyn<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span>;
+  .init           :
+  <span style="color:#f92672">{</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT_NONE<span style="color:#f92672">(</span>.init<span style="color:#f92672">)))</span>
+  <span style="color:#f92672">}</span>
+  .plt            : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.plt<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.iplt<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+.plt.got        : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.plt.got<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+.plt.sec        : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.plt.sec<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .text           :
+  <span style="color:#f92672">{</span>
+    *<span style="color:#f92672">(</span>.text.unlikely .text.*_unlikely .text.unlikely.*<span style="color:#f92672">)</span>
+    *<span style="color:#f92672">(</span>.text.exit .text.exit.*<span style="color:#f92672">)</span>
+    *<span style="color:#f92672">(</span>.text.startup .text.startup.*<span style="color:#f92672">)</span>
+    *<span style="color:#f92672">(</span>.text.hot .text.hot.*<span style="color:#f92672">)</span>
+    *<span style="color:#f92672">(</span>SORT<span style="color:#f92672">(</span>.text.sorted.*<span style="color:#f92672">))</span>
+    *<span style="color:#f92672">(</span>.text .stub .text.* .gnu.linkonce.t.*<span style="color:#f92672">)</span>
+    /* .gnu.warning sections are handled specially by elf.em.  */
+    *<span style="color:#f92672">(</span>.gnu.warning<span style="color:#f92672">)</span>
+  <span style="color:#f92672">}</span>
+  .fini           :
+  <span style="color:#f92672">{</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT_NONE<span style="color:#f92672">(</span>.fini<span style="color:#f92672">)))</span>
+  <span style="color:#f92672">}</span>
+  PROVIDE <span style="color:#f92672">(</span>__etext <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+  PROVIDE <span style="color:#f92672">(</span>_etext <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+  PROVIDE <span style="color:#f92672">(</span>etext <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+  . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span>;
+  /* Adjust the address <span style="color:#66d9ef">for</span> the rodata segment.  We want to adjust up to
+     the same address within the page on the next page up.  */
+  . <span style="color:#f92672">=</span> SEGMENT_START<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;rodata-segment&#34;</span>, ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span> + <span style="color:#f92672">(</span>. &amp; <span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">)</span> - 1<span style="color:#f92672">)))</span>;
+  .rodata         : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.rodata .rodata.* .gnu.linkonce.r.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .rodata1        : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.rodata1<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .eh_frame_hdr   : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.eh_frame_hdr<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.eh_frame_entry .eh_frame_entry.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .eh_frame       : ONLY_IF_RO <span style="color:#f92672">{</span> KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.eh_frame<span style="color:#f92672">))</span> *<span style="color:#f92672">(</span>.eh_frame.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gcc_except_table   : ONLY_IF_RO <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gcc_except_table .gcc_except_table.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gnu_extab   : ONLY_IF_RO <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu_extab*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* These sections are generated by the Sun/Oracle C++ compiler.  */
+  .exception_ranges   : ONLY_IF_RO <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.exception_ranges*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* Adjust the address <span style="color:#66d9ef">for</span> the data segment.  We want to adjust up to
+     the same address within the page on the next page up.  */
+  . <span style="color:#f92672">=</span> DATA_SEGMENT_ALIGN <span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">)</span>, CONSTANT <span style="color:#f92672">(</span>COMMONPAGESIZE<span style="color:#f92672">))</span>;
+  /* Exception handling  */
+  .eh_frame       : ONLY_IF_RW <span style="color:#f92672">{</span> KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.eh_frame<span style="color:#f92672">))</span> *<span style="color:#f92672">(</span>.eh_frame.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gnu_extab      : ONLY_IF_RW <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu_extab<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gcc_except_table   : ONLY_IF_RW <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gcc_except_table .gcc_except_table.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .exception_ranges   : ONLY_IF_RW <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.exception_ranges*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* Thread Local Storage sections  */
+  .tdata	  :
+   <span style="color:#f92672">{</span>
+     PROVIDE_HIDDEN <span style="color:#f92672">(</span>__tdata_start <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+     *<span style="color:#f92672">(</span>.tdata .tdata.* .gnu.linkonce.td.*<span style="color:#f92672">)</span>
+   <span style="color:#f92672">}</span>
+  .tbss		  : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.tbss .tbss.* .gnu.linkonce.tb.*<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.tcommon<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .preinit_array    :
+  <span style="color:#f92672">{</span>
+    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__preinit_array_start <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.preinit_array<span style="color:#f92672">))</span>
+    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__preinit_array_end <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+  <span style="color:#f92672">}</span>
+  .init_array    :
+  <span style="color:#f92672">{</span>
+    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__init_array_start <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT_BY_INIT_PRIORITY<span style="color:#f92672">(</span>.init_array.*<span style="color:#f92672">)</span> SORT_BY_INIT_PRIORITY<span style="color:#f92672">(</span>.ctors.*<span style="color:#f92672">)))</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.init_array EXCLUDE_FILE <span style="color:#f92672">(</span>*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o <span style="color:#f92672">)</span> .ctors<span style="color:#f92672">))</span>
+    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__init_array_end <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+  <span style="color:#f92672">}</span>
+  .fini_array    :
+  <span style="color:#f92672">{</span>
+    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__fini_array_start <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT_BY_INIT_PRIORITY<span style="color:#f92672">(</span>.fini_array.*<span style="color:#f92672">)</span> SORT_BY_INIT_PRIORITY<span style="color:#f92672">(</span>.dtors.*<span style="color:#f92672">)))</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.fini_array EXCLUDE_FILE <span style="color:#f92672">(</span>*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o <span style="color:#f92672">)</span> .dtors<span style="color:#f92672">))</span>
+    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__fini_array_end <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+  <span style="color:#f92672">}</span>
+  .ctors          :
+  <span style="color:#f92672">{</span>
+    /* gcc uses crtbegin.o to find the start of
+       the constructors, so we make sure it is
+       first.  Because this is a wildcard, it
+       doesn<span style="color:#e6db74">&#39;t matter if the user does not
+</span><span style="color:#e6db74">       actually link against crtbegin.o; the
+</span><span style="color:#e6db74">       linker won&#39;</span>t look <span style="color:#66d9ef">for</span> a file to match a
+       wildcard.  The wildcard also means that it
+       doesn<span style="color:#e6db74">&#39;t matter which directory crtbegin.o
+</span><span style="color:#e6db74">       is in.  */
+</span><span style="color:#e6db74">    KEEP (*crtbegin.o(.ctors))
+</span><span style="color:#e6db74">    KEEP (*crtbegin?.o(.ctors))
+</span><span style="color:#e6db74">    /* We don&#39;</span>t want to include the .ctor section from
+       the crtend.o file <span style="color:#66d9ef">until</span> after the sorted ctors.
+       The .ctor section from the crtend file contains the
+       end of ctors marker and it must be last */
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>EXCLUDE_FILE <span style="color:#f92672">(</span>*crtend.o *crtend?.o <span style="color:#f92672">)</span> .ctors<span style="color:#f92672">))</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT<span style="color:#f92672">(</span>.ctors.*<span style="color:#f92672">)))</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.ctors<span style="color:#f92672">))</span>
+  <span style="color:#f92672">}</span>
+  .dtors          :
+  <span style="color:#f92672">{</span>
+    KEEP <span style="color:#f92672">(</span>*crtbegin.o<span style="color:#f92672">(</span>.dtors<span style="color:#f92672">))</span>
+    KEEP <span style="color:#f92672">(</span>*crtbegin?.o<span style="color:#f92672">(</span>.dtors<span style="color:#f92672">))</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>EXCLUDE_FILE <span style="color:#f92672">(</span>*crtend.o *crtend?.o <span style="color:#f92672">)</span> .dtors<span style="color:#f92672">))</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT<span style="color:#f92672">(</span>.dtors.*<span style="color:#f92672">)))</span>
+    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.dtors<span style="color:#f92672">))</span>
+  <span style="color:#f92672">}</span>
+  .jcr            : <span style="color:#f92672">{</span> KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.jcr<span style="color:#f92672">))</span> <span style="color:#f92672">}</span>
+  .data.rel.ro : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .dynamic        : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.dynamic<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .got            : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.got.plt<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.igot.plt<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.got<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.igot<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  . <span style="color:#f92672">=</span> DATA_SEGMENT_RELRO_END <span style="color:#f92672">(</span>0, .<span style="color:#f92672">)</span>;
+  .data           :
+  <span style="color:#f92672">{</span>
+    *<span style="color:#f92672">(</span>.data .data.* .gnu.linkonce.d.*<span style="color:#f92672">)</span>
+    SORT<span style="color:#f92672">(</span>CONSTRUCTORS<span style="color:#f92672">)</span>
+  <span style="color:#f92672">}</span>
+  .data1          : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.data1<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  _edata <span style="color:#f92672">=</span> .; PROVIDE <span style="color:#f92672">(</span>edata <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+  . <span style="color:#f92672">=</span> .;
+  __bss_start <span style="color:#f92672">=</span> .;
+  .bss            :
+  <span style="color:#f92672">{</span>
+   *<span style="color:#f92672">(</span>.dynbss<span style="color:#f92672">)</span>
+   *<span style="color:#f92672">(</span>.bss .bss.* .gnu.linkonce.b.*<span style="color:#f92672">)</span>
+   *<span style="color:#f92672">(</span>COMMON<span style="color:#f92672">)</span>
+   /* Align here to ensure that the .bss section occupies space up to
+      _end.  Align after .bss to ensure correct alignment even <span style="color:#66d9ef">if</span> the
+      .bss section disappears because there are no input sections.
+      FIXME: Why <span style="color:#66d9ef">do</span> we need it? When there is no .bss section, we <span style="color:#66d9ef">do</span> not
+      pad the .data section.  */
+   . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span>. !<span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> ? <span style="color:#ae81ff">64</span> / <span style="color:#ae81ff">8</span> : 1<span style="color:#f92672">)</span>;
+  <span style="color:#f92672">}</span>
+  .lbss   :
+  <span style="color:#f92672">{</span>
+    *<span style="color:#f92672">(</span>.dynlbss<span style="color:#f92672">)</span>
+    *<span style="color:#f92672">(</span>.lbss .lbss.* .gnu.linkonce.lb.*<span style="color:#f92672">)</span>
+    *<span style="color:#f92672">(</span>LARGE_COMMON<span style="color:#f92672">)</span>
+  <span style="color:#f92672">}</span>
+  . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span><span style="color:#ae81ff">64</span> / 8<span style="color:#f92672">)</span>;
+  . <span style="color:#f92672">=</span> SEGMENT_START<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;ldata-segment&#34;</span>, .<span style="color:#f92672">)</span>;
+  .lrodata   ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span> + <span style="color:#f92672">(</span>. &amp; <span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">)</span> - 1<span style="color:#f92672">))</span> :
+  <span style="color:#f92672">{</span>
+    *<span style="color:#f92672">(</span>.lrodata .lrodata.* .gnu.linkonce.lr.*<span style="color:#f92672">)</span>
+  <span style="color:#f92672">}</span>
+  .ldata   ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span> + <span style="color:#f92672">(</span>. &amp; <span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">)</span> - 1<span style="color:#f92672">))</span> :
+  <span style="color:#f92672">{</span>
+    *<span style="color:#f92672">(</span>.ldata .ldata.* .gnu.linkonce.l.*<span style="color:#f92672">)</span>
+    . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span>. !<span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> ? <span style="color:#ae81ff">64</span> / <span style="color:#ae81ff">8</span> : 1<span style="color:#f92672">)</span>;
+  <span style="color:#f92672">}</span>
+  . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span><span style="color:#ae81ff">64</span> / 8<span style="color:#f92672">)</span>;
+  _end <span style="color:#f92672">=</span> .; PROVIDE <span style="color:#f92672">(</span>end <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+  . <span style="color:#f92672">=</span> DATA_SEGMENT_END <span style="color:#f92672">(</span>.<span style="color:#f92672">)</span>;
+  /* Stabs debugging sections.  */
+  .stab          <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .stabstr       <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stabstr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .stab.excl     <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab.excl<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .stab.exclstr  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab.exclstr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .stab.index    <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab.index<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .stab.indexstr <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab.indexstr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .comment       <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.comment<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gnu.build.attributes : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.build.attributes .gnu.build.attributes.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* DWARF debug sections.
+     Symbols in the DWARF debugging sections are relative to the beginning
+     of the section so we begin them at 0.  */
+  /* DWARF 1.  */
+  .debug          <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .line           <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.line<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* GNU DWARF <span style="color:#ae81ff">1</span> extensions.  */
+  .debug_srcinfo  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_srcinfo<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_sfnames  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_sfnames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* DWARF 1.1 and DWARF 2.  */
+  .debug_aranges  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_aranges<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_pubnames <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_pubnames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* DWARF 2.  */
+  .debug_info     <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_info .gnu.linkonce.wi.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_abbrev   <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_abbrev<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_line     <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_line .debug_line.* .debug_line_end<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_frame    <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_frame<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_str      <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_str<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_loc      <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_loc<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_macinfo  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_macinfo<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* SGI/MIPS DWARF <span style="color:#ae81ff">2</span> extensions.  */
+  .debug_weaknames <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_weaknames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_funcnames <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_funcnames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_typenames <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_typenames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_varnames  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_varnames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* DWARF 3.  */
+  .debug_pubtypes <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_pubtypes<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_ranges   <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_ranges<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  /* DWARF 5.  */
+  .debug_addr     <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_addr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_line_str <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_line_str<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_loclists <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_loclists<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_macro    <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_macro<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_names    <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_names<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_rnglists <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_rnglists<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_str_offsets <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_str_offsets<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .debug_sup      <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_sup<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+  .gnu.attributes <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.gnu.attributes<span style="color:#f92672">))</span> <span style="color:#f92672">}</span>
+  /DISCARD/ : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.note.GNU-stack<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.gnu_debuglink<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.gnu.lto_*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+
+<span style="color:#f92672">==================================================</span>
+
+</code></pre></div><h4 id="关键结构以-x86_64-linux-为例">关键结构（以 x86_64 Linux 为例）<a href="#关键结构以-x86_64-linux-为例" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>默认脚本大概结构是：</p>
+<pre tabindex="0"><code>OUTPUT_FORMAT(&quot;elf64-x86-64&quot;)
+OUTPUT_ARCH(i386:x86-64)
+ENTRY(_start)
+
+SECTIONS
+{
+  . = 0x400000;
+
+  .text :
+  {
+    *(.text*)
+  }
+
+  .rodata :
+  {
+    *(.rodata*)
+  }
+
+  .data :
+  {
+    *(.data*)
+  }
+
+  .bss :
+  {
+    *(.bss*)
+    *(COMMON)
+  }
+}
+</code></pre><p>当然真实脚本复杂得多，但核心结构就是这样。</p>
+<hr>
+<h4 id="3-先理解三个顶层指令">3️⃣ 先理解三个顶层指令<a href="#3-先理解三个顶层指令" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<hr>
+<h5 id="-output_format">🔹 OUTPUT_FORMAT<a href="#-output_format" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<pre tabindex="0"><code>OUTPUT_FORMAT(&quot;elf64-x86-64&quot;)
+</code></pre><p>告诉链接器：</p>
+<blockquote>
+<p>生成什么格式的 ELF</p>
+</blockquote>
+<p>这和目标架构绑定。</p>
+<hr>
+<h5 id="-output_arch">🔹 OUTPUT_ARCH<a href="#-output_arch" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<pre tabindex="0"><code>OUTPUT_ARCH(i386:x86-64)
+</code></pre><p>指定 CPU 架构。</p>
+<hr>
+<h5 id="-entry_start">🔹 ENTRY(_start)<a href="#-entry_start" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>这里和你写的一样。</p>
+<p>它只是：</p>
+<blockquote>
+<p>设置 ELF Header 中的 e_entry 字段。</p>
+</blockquote>
+<p>⚠️ 重点：</p>
+<p>这不会影响 CPU reset 地址。</p>
+<p>它只是告诉 loader：</p>
+<blockquote>
+<p>程序入口在哪里。</p>
+</blockquote>
+<hr>
+<h4 id="现在我们可以回到你的-ld-脚本">现在我们可以回到你的 ld 脚本<a href="#现在我们可以回到你的-ld-脚本" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<pre tabindex="0"><code>.text :
+{
+  *(entry)
+  *(.text*)
+} &gt; MROM
+</code></pre><p>这一句做了两件事：</p>
+<ol>
+<li>决定顺序（entry 先放）</li>
+<li>决定地址（从 0x20000000 开始）</li>
+</ol>
+<p>这就是“分配地址”阶段。</p>
+<pre tabindex="0"><code class="language-ld" data-lang="ld">MEMORY
+{
+  MROM (rx)  : ORIGIN = 0x20000000, LENGTH = 128K
+  SRAM (rwx) : ORIGIN = 0x0f000000, LENGTH = 8K
+}
+
+ENTRY(_start)
+
+SECTIONS
+{
+  . = ORIGIN(MROM);
+
+  .text :
+  {
+    *(entry)
+    *(.text*)
+  } &gt; MROM
+
+  .rodata :
+  {
+    *(.rodata*)
+  } &gt; MROM
+
+  . = ORIGIN(SRAM);
+
+  .data : AT(LOADADDR(.rodata) + SIZEOF(.rodata))
+  {
+    _data_start = .;
+    *(.data*)
+    _data_end = .;
+  } &gt; SRAM
+
+  _data_load = LOADADDR(.data);
+
+  .bss :
+  {
+    _bss_start = .;
+    *(.bss*)
+    *(COMMON)
+    _bss_end = .;
+  } &gt; SRAM
+
+  . = ALIGN(8);
+  _heap_start = .;
+
+  _stack_top = ORIGIN(SRAM) + LENGTH(SRAM);
+}
+
+</code></pre><h4 id="entry_start-到底在干什么">ENTRY(_start) 到底在干什么？<a href="#entry_start-到底在干什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在链接脚本里：</p>
+<pre tabindex="0"><code>ENTRY(_start)
+</code></pre><p>它的作用只有一句话：</p>
+<blockquote>
+<p>把 ELF Header 里的 <code>e_entry</code> 字段设置为符号 <code>_start</code> 的地址。</p>
+</blockquote>
+<p>也就是说：</p>
+<ul>
+<li>它不生成代码</li>
+<li>它不改变 section 布局</li>
+<li>它不影响 reset 向量</li>
+<li>它只是指定“程序入口符号”</li>
+</ul>
+<p>你可以验证：</p>
+<pre tabindex="0"><code>readelf -h hello
+</code></pre><p>会看到：</p>
+<pre tabindex="0"><code>Entry point address: 0xXXXX
+</code></pre><p>这个地址就是 <code>_start</code> 的 VMA。</p>
+<hr>
+<h4 id="那-_start-是什么">那 <code>_start</code> 是什么？<a href="#那-_start-是什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p><code>_start</code> 只是一个普通符号。</p>
+<p>它通常是：</p>
+<blockquote>
+<p>程序真正的第一条指令</p>
+</blockquote>
+<p>⚠ 注意：不是 <code>main</code>。</p>
+<h4 id="在-linux-中-_start-从哪来">在 Linux 中 <code>_start</code> 从哪来？<a href="#在-linux-中-_start-从哪来" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>当你写：</p>
+<pre tabindex="0"><code>gcc hello.c -o hello
+</code></pre><p>即使你没有写 <code>_start</code>，程序仍然可以运行。</p>
+<p>因为 GCC 自动链接了：</p>
+<ul>
+<li><code>crt1.o</code></li>
+<li><code>crti.o</code></li>
+<li><code>crtn.o</code></li>
+</ul>
+<p>其中在 <code>crt1.o</code> 里定义了：</p>
+<pre tabindex="0"><code>_start:
+    ...
+    call __libc_start_main
+</code></pre><p>然后：</p>
+<pre tabindex="0"><code>__libc_start_main → 调用 main
+</code></pre><p>所以执行流程是：</p>
+<pre tabindex="0"><code>_start → libc 初始化 → main → exit
+</code></pre><hr>
+<h4 id="在裸机中-_start-是谁">在裸机中 <code>_start</code> 是谁？<a href="#在裸机中-_start-是谁" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在裸机环境里：</p>
+<ul>
+<li>没有 libc</li>
+<li>没有 crt1.o</li>
+<li>没有 loader</li>
+</ul>
+<p>所以：</p>
+<blockquote>
+<p>你必须自己写 <code>_start</code></p>
+</blockquote>
+<p>通常是：</p>
+<pre tabindex="0"><code>.section entry
+.global _start
+
+_start:
+    la sp, _stack_top
+    call init_data
+    call zero_bss
+    call main
+loop:
+    j loop
+</code></pre><hr>
+<h4 id="entry-还能写别的吗">ENTRY() 还能写别的吗？<a href="#entry-还能写别的吗" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>当然可以。</p>
+<pre tabindex="0"><code>ENTRY(reset_handler)
+</code></pre><p>或者：</p>
+<pre tabindex="0"><code>ENTRY(main)
+</code></pre><p>只要这个符号存在即可。</p>
+<p>链接器只做一件事：</p>
+<blockquote>
+<p>找到这个符号的地址 → 写入 ELF header</p>
+</blockquote>
+<hr>
+<h4 id="如果不写-entry-会怎样">如果不写 ENTRY() 会怎样？<a href="#如果不写-entry-会怎样" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>ld 有默认规则：</p>
+<p>优先级是：</p>
+<ol>
+<li>命令行 <code>-e symbol</code></li>
+<li>链接脚本 <code>ENTRY(symbol)</code></li>
+<li>查找 <code>_start</code></li>
+<li>查找 <code>start</code></li>
+<li>取 <code>.text</code> 开头</li>
+</ol>
+<p>所以即使你不写 ENTRY：</p>
+<p>如果存在 <code>_start</code>，通常仍然会选它。</p>
+<hr>
+<h4 id="重要区别entry--硬件复位地址">重要区别：ENTRY ≠ 硬件复位地址<a href="#重要区别entry--硬件复位地址" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这点非常关键（尤其对你现在的裸机环境）。</p>
+<p>在 Linux：</p>
+<ul>
+<li>内核读取 ELF header</li>
+<li>跳转到 <code>e_entry</code></li>
+</ul>
+<p>在裸机：</p>
+<p>CPU 上电后：</p>
+<ul>
+<li>PC 从固定物理地址开始（例如 0x20000000）</li>
+<li>这与 ELF header 无关</li>
+</ul>
+<p>所以在裸机中：</p>
+<p>如果你把代码烧到 0x20000000
+那 <code>_start</code> 必须刚好位于这个地址</p>
+<p>否则 ENTRY 没意义。</p>
+<h3 id="linux-用户态的启动流程">Linux 用户态的启动流程<a href="#linux-用户态的启动流程" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">:~$ readelf -h hello
+ELF 头：
+  Magic：   7f <span style="color:#ae81ff">45</span> 4c <span style="color:#ae81ff">46</span> <span style="color:#ae81ff">02</span> <span style="color:#ae81ff">01</span> <span style="color:#ae81ff">01</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 
+  类别:                              ELF64
+  数据:                              <span style="color:#ae81ff">2</span> 补码，小端序 <span style="color:#f92672">(</span>little endian<span style="color:#f92672">)</span>
+  Version:                           <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>current<span style="color:#f92672">)</span>
+  OS/ABI:                            UNIX - System V
+  ABI 版本:                          <span style="color:#ae81ff">0</span>
+  类型:                              DYN <span style="color:#f92672">(</span>Position-Independent Executable file<span style="color:#f92672">)</span>
+  系统架构:                          Advanced Micro Devices X86-64
+  版本:                              0x1
+  入口点地址：               0x1060
+  程序头起点：          <span style="color:#ae81ff">64</span> <span style="color:#f92672">(</span>bytes into file<span style="color:#f92672">)</span>
+  Start of section headers:          <span style="color:#ae81ff">13976</span> <span style="color:#f92672">(</span>bytes into file<span style="color:#f92672">)</span>
+  标志：             0x0
+  Size of this header:               <span style="color:#ae81ff">64</span> <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)</span>
+  Size of program headers:           <span style="color:#ae81ff">56</span> <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)</span>
+  Number of program headers:         <span style="color:#ae81ff">13</span>
+  Size of section headers:           <span style="color:#ae81ff">64</span> <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)</span>
+  Number of section headers:         <span style="color:#ae81ff">31</span>
+  Section header string table index: <span style="color:#ae81ff">30</span>
+
+</code></pre></div><pre tabindex="0"><code>lzk@lzk-Virtual-Machine:~$ gcc hello.c -no-pie -o hello
+lzk@lzk-Virtual-Machine:~$ readelf -h hello
+ELF 头：
+  Magic：   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  类别:                              ELF64
+  数据:                              2 补码，小端序 (little endian)
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI 版本:                          0
+  类型:                              EXEC (可执行文件)
+  系统架构:                          Advanced Micro Devices X86-64
+  版本:                              0x1
+  入口点地址：               0x401050
+  程序头起点：          64 (bytes into file)
+  Start of section headers:          13904 (bytes into file)
+  标志：             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         13
+  Size of section headers:           64 (bytes)
+  Number of section headers:         31
+  Section header string table index: 30
+
+</code></pre><p>很好，这个问题非常关键。你已经开始真正“看懂 ELF 了”。</p>
+<p>你现在看到：</p>
+<pre tabindex="0"><code>类型: DYN (Position-Independent Executable file)
+入口点地址：0x1060
+</code></pre><p>你没看到：</p>
+<pre tabindex="0"><code>. = 0x400000
+</code></pre><p>这不是你看漏了，而是因为：</p>
+<blockquote>
+<p>你现在编译出来的是 PIE（Position Independent Executable）。</p>
+</blockquote>
+<hr>
+<h4 id="为什么是-dyn-而不是-exec">为什么是 DYN 而不是 EXEC？<a href="#为什么是-dyn-而不是-exec" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>注意这一行：</p>
+<pre tabindex="0"><code>类型: DYN (Position-Independent Executable file)
+</code></pre><p>在现代 Linux（Ubuntu 默认 GCC）中：</p>
+<pre tabindex="0"><code>gcc hello.c -o hello
+</code></pre><p>默认开启：</p>
+<pre tabindex="0"><code>-fPIE
+-pie
+</code></pre><p>所以生成的不是传统的：</p>
+<pre tabindex="0"><code>EXEC
+</code></pre><p>而是：</p>
+<pre tabindex="0"><code>DYN
+</code></pre><p>它和共享库使用同一种 ELF 类型。</p>
+<hr>
+<h4 id="pie-意味着什么">PIE 意味着什么？<a href="#pie-意味着什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>PIE 的含义是：</p>
+<blockquote>
+<p>程序可以被加载到任意虚拟地址。</p>
+</blockquote>
+<p>因此：</p>
+<ul>
+<li>链接时不能固定 <code>. = 0x400000</code></li>
+<li>所有代码是相对地址</li>
+<li>真正加载地址由内核随机决定（ASLR）</li>
+</ul>
+<p>所以你看到：</p>
+<pre tabindex="0"><code>入口点地址：0x1060
+</code></pre><p>这其实是：</p>
+<pre tabindex="0"><code>相对于加载基址的偏移
+</code></pre><p>而不是绝对虚拟地址。</p>
+<hr>
+<h4 id="那-0x400000-到底去哪了">那 0x400000 到底去哪了？<a href="#那-0x400000-到底去哪了" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在老式（非 PIE）可执行文件中：</p>
+<pre tabindex="0"><code>gcc hello.c -no-pie -o hello
+</code></pre><p>然后再：</p>
+<pre tabindex="0"><code>readelf -h hello
+</code></pre><p>你会看到：</p>
+<pre tabindex="0"><code>类型: EXEC
+入口点地址: 0x401060
+</code></pre><p>这时候：</p>
+<ul>
+<li><code>.text</code> 从 0x400000 开始</li>
+<li><code>_start</code> 在 0x401060</li>
+</ul>
+<p>也就是说：</p>
+<pre tabindex="0"><code>0x400000 + 0x1060 = 0x401060
+</code></pre><p>而你现在的：</p>
+<pre tabindex="0"><code>0x1060
+</code></pre><p>是 PIE 模式下的“相对入口”。</p>
+<p>所以在非PIE版本中所有程序的入口都在0x400000？那为什么两个不一样的程序不会进入到同一段代码呢</p>
+<p>即使两个非-PIE 程序的入口都是 0x400000，它们也不会进入同一段代码，因为每个进程拥有独立的虚拟地址空间。</p>
+<h4 id="虚拟地址空间是每个进程独立的">虚拟地址空间是“每个进程独立的”<a href="#虚拟地址空间是每个进程独立的" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在 Linux 上：</p>
+<ul>
+<li>每个进程都有自己的页表</li>
+<li>每个进程的虚拟地址空间互相隔离</li>
+<li>0x400000 在不同进程里是不同的映射</li>
+</ul>
+<p>举个例子：</p>
+<p>假设你有两个程序：</p>
+<ul>
+<li>hello</li>
+<li>world</li>
+</ul>
+<p>它们都是 non-PIE，入口都是 0x401060。</p>
+<p>当你同时运行：</p>
+<pre tabindex="0"><code>./hello &amp;
+./world &amp;
+</code></pre><p>它们的 <code>/proc/&lt;pid&gt;/maps</code> 可能看起来像：</p>
+<pre tabindex="0"><code>00400000-00401000 r-xp hello
+00400000-00401000 r-xp world
+</code></pre><p>看起来地址一样。</p>
+<p>但：</p>
+<ul>
+<li>hello 的 0x400000 映射到物理页 A</li>
+<li>world 的 0x400000 映射到物理页 B</li>
+</ul>
+<p>因为它们的页表不同。</p>
+<h4 id="crt1o--crtio--crtno-分工">crt1.o / crti.o / crtn.o 分工<a href="#crt1o--crtio--crtno-分工" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>很好，现在我们把 Linux 下那三个“神秘文件”彻底讲清楚。</p>
+<p>你每次执行：</p>
+<pre tabindex="0"><code>gcc hello.c -o hello
+</code></pre><p>实际上 <strong>自动链接了三类启动文件</strong>：</p>
+<ul>
+<li><code>crt1.o</code></li>
+<li><code>crti.o</code></li>
+<li><code>crtn.o</code></li>
+</ul>
+<p>它们统称为：</p>
+<blockquote>
+<p>C runtime startup objects</p>
+</blockquote>
+<hr>
+<h4 id="一句话总结它们的职责">一句话总结它们的职责<a href="#一句话总结它们的职责" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>crt1.o</td>
+<td>提供 <code>_start</code></td>
+</tr>
+<tr>
+<td>crti.o</td>
+<td>提供 <code>.init</code> / <code>.fini</code> 开头</td>
+</tr>
+<tr>
+<td>crtn.o</td>
+<td>提供 <code>.init</code> / <code>.fini</code> 结尾</td>
+</tr>
+</tbody>
+</table>
+<p>它们一起构成：</p>
+<blockquote>
+<p>程序从进入 <code>_start</code> 到调用 <code>main</code> 的桥梁</p>
+</blockquote>
+<hr>
+<h4 id="crt1o--程序真正的入口">crt1.o —— 程序真正的入口<a href="#crt1o--程序真正的入口" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这是最核心的。</p>
+<p>里面定义了：</p>
+<pre tabindex="0"><code>_start:
+    ...
+    call __libc_start_main
+</code></pre><p>执行流程大概是：</p>
+<pre tabindex="0"><code>_start
+  ↓
+__libc_start_main
+  ↓
+main
+  ↓
+exit
+</code></pre><p>也就是说：</p>
+<blockquote>
+<p>你写的 main 从来不是 CPU 的第一条指令。</p>
+</blockquote>
+<p>第一条指令永远是 <code>_start</code>。</p>
+<hr>
+<h4 id="那-__libc_start_main-干嘛">那 __libc_start_main 干嘛？<a href="#那-__libc_start_main-干嘛" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>它负责：</p>
+<ul>
+<li>解析 argc / argv</li>
+<li>初始化 libc</li>
+<li>初始化全局构造函数</li>
+<li>调用 main</li>
+<li>调用 exit</li>
+</ul>
+<p>它是 glibc 里的核心入口函数。</p>
+<hr>
+<h4 id="crtio-和-crtno-是干嘛的">crti.o 和 crtn.o 是干嘛的？<a href="#crtio-和-crtno-是干嘛的" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这两个文件很多人完全不知道。</p>
+<p>它们是配合 <code>.init</code> / <code>.fini</code> section 用的。</p>
+<p>在 ELF 里有两个特殊 section：</p>
+<ul>
+<li><code>.init</code></li>
+<li><code>.fini</code></li>
+</ul>
+<p>用于：</p>
+<ul>
+<li>构造函数初始化</li>
+<li>程序结束清理</li>
+</ul>
+<hr>
+<h5 id="crtio-的作用">crti.o 的作用<a href="#crtio-的作用" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>提供：</p>
+<pre tabindex="0"><code>.section .init
+_init:
+    push ...
+    ...
+</code></pre><p>也就是说：</p>
+<blockquote>
+<p>提供 .init section 的“开头”</p>
+</blockquote>
+<hr>
+<h5 id="crtno-的作用">crtn.o 的作用<a href="#crtno-的作用" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>提供：</p>
+<pre tabindex="0"><code>.section .init
+    pop ...
+    ret
+</code></pre><p>它补上“结尾”。</p>
+<hr>
+<h4 id="为什么要拆成两个文件">为什么要拆成两个文件？<a href="#为什么要拆成两个文件" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>因为：</p>
+<p>链接顺序是：</p>
+<pre tabindex="0"><code>crti.o
+你的 .o 文件
+crtn.o
+</code></pre><p>所以 <code>.init</code> section 会变成：</p>
+<pre tabindex="0"><code>[crti 的代码]
+[你的构造函数]
+[crtn 的收尾代码]
+</code></pre><p>这是一种“拼接结构”。</p>
+<hr>
+<h4 id="完整启动流程图linux">完整启动流程图（Linux）<a href="#完整启动流程图linux" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<pre tabindex="0"><code>内核
+  ↓
+加载 ELF
+  ↓
+跳转到 e_entry
+  ↓
+_start (crt1.o)
+  ↓
+__libc_start_main
+  ↓
+调用全局构造函数
+  ↓
+main
+  ↓
+exit
+  ↓
+调用析构函数
+</code></pre><hr>
+<h4 id="如果你用--nostdlib-会发生什么">如果你用 -nostdlib 会发生什么？<a href="#如果你用--nostdlib-会发生什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>试试：</p>
+<pre tabindex="0"><code>gcc hello.c -nostdlib -o hello
+</code></pre><p>你会得到：</p>
+<pre tabindex="0"><code>undefined reference to `_start`
+</code></pre><p>因为：</p>
+<ul>
+<li>crt1.o 没有被链接</li>
+<li>没有人提供 <code>_start</code></li>
+</ul>
+<p>这就和你裸机环境一模一样了。</p>
+<p>现在我们正式进入<strong>链接脚本的语义层</strong>，而不是停留在“它可以控制地址”这种表层说法。</p>
+<p>这一节我们要解决四个问题：</p>
+<ol>
+<li>链接脚本本质在做什么？</li>
+<li>VMA 和 LMA 是如何被表达的？</li>
+<li><code>AT()</code> 到底改变了什么？</li>
+<li>为什么嵌入式必须关心 LMA，而 Linux 通常不用？</li>
+</ol>
+<h3 id="裸机环境的启动流程">裸机环境的启动流程<a href="#裸机环境的启动流程" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>现在你可以看到完整逻辑：</p>
+<ol>
+<li>CPU 复位</li>
+<li>SP 未知</li>
+<li>必须先设置栈</li>
+<li>才能安全调用函数</li>
+<li>再初始化 .data / .bss</li>
+<li>再进入 C 语言世界</li>
+</ol>
+<p>堆是“附加能力”
+栈是“基础设施”</p>
+<h4 id="一启动代码startup-code本质是什么">一、启动代码（startup code）本质是什么？<a href="#一启动代码startup-code本质是什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>一句话定义：</p>
+<blockquote>
+<p>启动代码 = 在进入 C 语言世界之前，建立运行环境的那段最低级代码。</p>
+</blockquote>
+<p>CPU 上电后不会自动帮你：</p>
+<ul>
+<li>设置栈</li>
+<li>初始化全局变量</li>
+<li>清零未初始化变量</li>
+<li>调用构造函数</li>
+<li>跳转到 main()</li>
+</ul>
+<p>这些都必须由你（或者 libc）完成。</p>
+<hr>
+<h4 id="启动代码必须做的几件事按顺序">启动代码必须做的几件事（按顺序）<a href="#启动代码必须做的几件事按顺序" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>你目前讲的是偏裸机 / bootloader 场景，我重点讲这个。</p>
+<hr>
+<h4 id="1-必须先设置栈stack-pointer">1️⃣ 必须先设置栈（Stack Pointer）<a href="#1-必须先设置栈stack-pointer" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>因为 C 语言依赖栈。</p>
+<p>例如：</p>
+<pre tabindex="0"><code>int main() {
+    int a = 5;
+}
+</code></pre><p>变量 <code>a</code> 在栈上。</p>
+<p>函数调用：</p>
+<pre tabindex="0"><code>foo();
+</code></pre><p>会：</p>
+<ul>
+<li>把返回地址压栈</li>
+<li>保存寄存器</li>
+<li>分配局部变量空间</li>
+</ul>
+<p>如果 SP 没有指向合法内存：</p>
+<ul>
+<li>push 会写到未知地址</li>
+<li>函数调用直接崩溃</li>
+<li>甚至访问到非法地址导致异常</li>
+</ul>
+<p>所以启动代码第一步通常是：</p>
+<pre tabindex="0"><code>ldr sp, =_stack_top
+</code></pre><p>或</p>
+<pre tabindex="0"><code>mov sp, #0x20010000
+</code></pre><p>这一步建立运行时环境的“地基”。</p>
+<hr>
+<h4 id="2-为什么必须复制-data-段">2️⃣ 为什么必须复制 .data 段？<a href="#2-为什么必须复制-data-段" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这涉及 LMA / VMA。</p>
+<p>典型裸机内存布局：</p>
+<p>Flash：</p>
+<pre tabindex="0"><code>.text
+.rodata
+.data  (初始化数据的存储副本)
+</code></pre><p>RAM：</p>
+<pre tabindex="0"><code>.data  (真正运行时的)
+.bss
+.stack
+.heap
+</code></pre><p>关键点：</p>
+<p>.data 段：</p>
+<ul>
+<li>运行地址在 RAM</li>
+<li>初始值存储在 Flash</li>
+</ul>
+<p>例如：</p>
+<pre tabindex="0"><code>int g = 5;
+</code></pre><p>编译器会把 5 放到 Flash。</p>
+<p>但运行时：</p>
+<pre tabindex="0"><code>g 必须在 RAM 中
+</code></pre><p>因为：</p>
+<ul>
+<li>全局变量可能被修改</li>
+<li>Flash 通常不可写</li>
+</ul>
+<p>所以启动代码必须：</p>
+<pre tabindex="0"><code>把 Flash 中的 .data 复制到 RAM 中的 .data
+</code></pre><p>否则：</p>
+<ul>
+<li>g 读取值是错的</li>
+<li>或者访问未初始化内存</li>
+</ul>
+<p>典型代码：</p>
+<pre tabindex="0"><code>uint32_t *src = &amp;_sidata;   // LMA
+uint32_t *dst = &amp;_sdata;    // VMA
+while (dst &lt; &amp;_edata) {
+    *dst++ = *src++;
+}
+</code></pre><h4 id="为什么必须清零-bss">为什么必须清零 .bss？<a href="#为什么必须清零-bss" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>.bss 段：</p>
+<p>存放未初始化的全局变量</p>
+<pre tabindex="0"><code>int x;
+</code></pre><p>按照 C 标准：</p>
+<blockquote>
+<p>未初始化的全局变量默认必须为 0</p>
+</blockquote>
+<p>但：</p>
+<ul>
+<li>Flash 里不会给它存 0</li>
+<li>RAM 上电后是随机值</li>
+</ul>
+<p>所以必须清零。</p>
+<p>启动代码必须做：</p>
+<pre tabindex="0"><code>uint32_t *p = &amp;_sbss;
+while (p &lt; &amp;_ebss) {
+    *p++ = 0;
+}
+</code></pre><p>否则：</p>
+<p>程序逻辑会随机错误。</p>
+<hr>
+<h4 id="最后才能调用-main">最后才能调用 main()<a href="#最后才能调用-main" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>完整流程：</p>
+<pre tabindex="0"><code>CPU reset
+  ↓
+跳到 reset handler
+  ↓
+设置 SP
+  ↓
+复制 .data
+  ↓
+清零 .bss
+  ↓
+调用 C++ 构造函数（如果有）
+  ↓
+调用 main()
+</code></pre><hr>
+<h4 id="如果不做这些会发生什么">如果不做这些会发生什么？<a href="#如果不做这些会发生什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<table>
+<thead>
+<tr>
+<th>忽略步骤</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>不设栈</td>
+<td>函数调用直接崩溃</td>
+</tr>
+<tr>
+<td>不复制 .data</td>
+<td>初始化全局变量值错误</td>
+</tr>
+<tr>
+<td>不清零 .bss</td>
+<td>未初始化变量随机值</td>
+</tr>
+<tr>
+<td>不调用构造函数</td>
+<td>C++ 静态对象出错</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="linux-用户态程序是谁做这些">Linux 用户态程序是谁做这些？<a href="#linux-用户态程序是谁做这些" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在 Linux 下：</p>
+<p>这些由 glibc 的启动文件完成：</p>
+<ul>
+<li>crt1.o</li>
+<li>crti.o</li>
+<li>crtn.o</li>
+</ul>
+<p>入口函数是：</p>
+<pre tabindex="0"><code>_start
+</code></pre><p>由 glibc 提供。</p>
+<p>它做的事情本质一样：</p>
+<ul>
+<li>建立栈</li>
+<li>解析 argc / argv</li>
+<li>初始化 libc</li>
+<li>调用 main</li>
+<li>调用 exit</li>
+</ul>
+<h3 id="heading"><a href="#heading" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h2 id="第六部分嵌入式视角--vma-与-lma">第六部分：嵌入式视角 —— VMA 与 LMA<a href="#第六部分嵌入式视角--vma-与-lma" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="第13章什么是-vma-与-lma">第13章：什么是 VMA 与 LMA？<a href="#第13章什么是-vma-与-lma" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="vma-和-lma-的本质定义">VMA 和 LMA 的本质定义<a href="#vma-和-lma-的本质定义" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在 ELF 中，每个输出 section 都有两个地址：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VMA (Virtual Memory Address)</td>
+<td>程序运行时访问的地址</td>
+</tr>
+<tr>
+<td>LMA (Load Memory Address)</td>
+<td>程序被加载时存放的地址</td>
+</tr>
+</tbody>
+</table>
+<p>默认情况下：</p>
+<pre tabindex="0"><code>VMA == LMA
+</code></pre><p>只有在嵌入式场景下才会分离。</p>
+<hr>
+<h4 id="看你当前脚本的前半部分">看你当前脚本的前半部分<a href="#看你当前脚本的前半部分" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<pre tabindex="0"><code>MEMORY
+{
+  MROM (rx)  : ORIGIN = 0x20000000, LENGTH = 128K
+  SRAM (rwx) : ORIGIN = 0x0f000000, LENGTH = 8K
+}
+</code></pre><p>这一步做的事情是：</p>
+<ul>
+<li>定义两个可分配内存区域</li>
+<li>后续 <code>&gt; MROM</code> 或 <code>&gt; SRAM</code> 会引用它</li>
+</ul>
+<p>⚠ 注意：</p>
+<p><code>MEMORY</code> 不会自动放置 section
+它只是提供可选区域。</p>
+<hr>
+<h4 id="location-counter的真正含义">location counter（<code>.</code>）的真正含义<a href="#location-counter的真正含义" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<pre tabindex="0"><code>. = ORIGIN(MROM);
+</code></pre><p><code>.</code> 叫 location counter。</p>
+<p>它代表：</p>
+<blockquote>
+<p>当前 section 的 VMA 写入位置</p>
+</blockquote>
+<p>此时：</p>
+<pre tabindex="0"><code>. = 0x20000000
+</code></pre><hr>
+<h4 id="text-的-vma-如何确定"><code>.text</code> 的 VMA 如何确定？<a href="#text-的-vma-如何确定" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<pre tabindex="0"><code>.text :
+{
+  *(entry)
+  *(.text*)
+} &gt; MROM
+</code></pre><p><code>&gt; MROM</code> 的意思是：</p>
+<blockquote>
+<p>把这个 section 的 VMA 放入 MROM 区域</p>
+</blockquote>
+<p>因为当前 <code>.</code> 已经在：</p>
+<pre tabindex="0"><code>0x20000000
+</code></pre><p>所以：</p>
+<pre tabindex="0"><code>.text VMA = 0x20000000
+</code></pre><p>而因为没有写 <code>AT()</code>：</p>
+<pre tabindex="0"><code>.text LMA = VMA
+</code></pre><hr>
+<h4 id="rodata-同理"><code>.rodata</code> 同理<a href="#rodata-同理" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<pre tabindex="0"><code>.rodata :
+{
+  *(.rodata*)
+} &gt; MROM
+</code></pre><ul>
+<li>紧接在 <code>.text</code> 之后</li>
+<li>VMA 在 MROM</li>
+<li>LMA = VMA</li>
+</ul>
+<p>到这里：</p>
+<p>ROM 内部是连续布局的。</p>
+<hr>
+<h4 id="现在进入关键部分data">现在进入关键部分：<code>.data</code><a href="#现在进入关键部分data" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>你写了：</p>
+<pre tabindex="0"><code>. = ORIGIN(SRAM);
+
+.data : AT(LOADADDR(.rodata) + SIZEOF(.rodata))
+{
+  _data_start = .;
+  *(.data*)
+  _data_end = .;
+} &gt; SRAM
+</code></pre><p>我们逐行拆。</p>
+<hr>
+<h5 id="第一步">第一步<a href="#第一步" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<pre tabindex="0"><code>. = ORIGIN(SRAM);
+</code></pre><p>把 VMA 指针改成：</p>
+<pre tabindex="0"><code>0x0f000000
+</code></pre><hr>
+<h5 id="第二步">第二步<a href="#第二步" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<pre tabindex="0"><code>&gt; SRAM
+</code></pre><p>表示：</p>
+<pre tabindex="0"><code>.data 的 VMA 在 SRAM
+</code></pre><h3 id="第14章链接脚本中的-at-语法">第14章：链接脚本中的 AT 语法<a href="#第14章链接脚本中的-at-语法" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h2 id="第三步at">第三步：AT()<a href="#第三步at" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>这是核心。</p>
+<pre tabindex="0"><code>AT(LOADADDR(.rodata) + SIZEOF(.rodata))
+</code></pre><p>它改变的是：</p>
+<blockquote>
+<p>LMA</p>
+</blockquote>
+<p>这句话的意思是：</p>
+<pre tabindex="0"><code>.data 的 LMA = rodata 在 ROM 中的末尾
+</code></pre><p>因此最终结果是：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>.data VMA</td>
+<td>0x0f000000</td>
+</tr>
+<tr>
+<td>.data LMA</td>
+<td>紧接 rodata</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="八这在-elf-里如何体现">八、这在 ELF 里如何体现？<a href="#八这在-elf-里如何体现" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>在 ELF 的 Program Header 里：</p>
+<p>你会看到：</p>
+<pre tabindex="0"><code>LOAD segment:
+  p_vaddr != p_paddr
+</code></pre><p>VMA 是 p_vaddr
+LMA 是 p_paddr</p>
+<p>在嵌入式中：</p>
+<ul>
+<li>p_paddr = 烧录地址</li>
+<li>p_vaddr = 运行地址</li>
+</ul>
+<hr>
+<h1 id="九为什么必须这样做">九、为什么必须这样做？<a href="#九为什么必须这样做" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>因为：</p>
+<ul>
+<li>ROM 不可写</li>
+<li>全局变量必须可写</li>
+<li>所以 data 必须运行在 SRAM</li>
+</ul>
+<p>但：</p>
+<ul>
+<li>初始值存储在 ROM</li>
+<li>启动时必须 memcpy</li>
+</ul>
+<p>这就是 startup code 的责任。</p>
+<hr>
+<h1 id="十bss-为什么没有-at">十、<code>.bss</code> 为什么没有 AT()？<a href="#十bss-为什么没有-at" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<pre tabindex="0"><code>.bss :
+{
+  *(.bss*)
+} &gt; SRAM
+</code></pre><p><code>.bss</code>：</p>
+<ul>
+<li>没有初始值</li>
+<li>不需要存储在 ROM</li>
+<li>LMA 不存在</li>
+<li>只需要运行时清零</li>
+</ul>
+<hr>
+<h1 id="十一总结一句话">十一、总结一句话<a href="#十一总结一句话" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p><code>&gt;</code> 决定 VMA
+<code>AT()</code> 决定 LMA</p>
+<p>如果不写 AT：</p>
+<pre tabindex="0"><code>LMA = VMA
+</code></pre><hr>
+<h1 id="十二你这个脚本是一个典型的rom-to-ram-copy-model">十二、你这个脚本是一个典型的“ROM to RAM copy model”<a href="#十二你这个脚本是一个典型的rom-to-ram-copy-model" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>内存布局是：</p>
+<p>ROM:</p>
+<pre tabindex="0"><code>.text
+.rodata
+.data (initial image)
+</code></pre><p>SRAM:</p>
+<pre tabindex="0"><code>.data (runtime)
+.bss
+.heap
+.stack
+</code></pre><h2 id="第七部分完整运行流程闭环">第七部分：完整运行流程闭环<a href="#第七部分完整运行流程闭环" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

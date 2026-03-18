@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>如何优雅地结束一个线程Pt1 :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="FreeRTOS 中 task 优雅退出的工程级实践" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/syntax.min.a0773cce9310cb6d8ed23e50f005448facf29a53001b57e038828daa466b25c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="https://luzekka.github.io/favicon.png">
+<link rel="apple-touch-icon" href="https://luzekka.github.io/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="如何优雅地结束一个线程Pt1">
+<meta property="og:description" content="FreeRTOS 中 task 优雅退出的工程级实践" />
+<meta property="og:url" content="https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="https://luzekka.github.io/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+  <meta property="article:published_time" content="2026-01-14 16:48:25 &#43;0800 CST" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://luzekka.github.io/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/">如何优雅地结束一个线程Pt1</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2026-01-14</time><span class="post-author">LuzekkA</span></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="https://luzekka.github.io/tags/freertos/">FreeRTOS</a>&nbsp;
+      
+      #<a href="https://luzekka.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#如何优雅地结束一个线程pt1">如何优雅地结束一个线程Pt1</a></li>
+    <li><a href="#问题背景一个看似无害的发送任务">问题背景：一个看似无害的发送任务</a></li>
+    <li><a href="#为什么直接-vtaskdelete-是危险的">为什么直接 <code>vTaskDelete()</code> 是危险的</a></li>
+    <li><a href="#为什么低负载下能跑高负载下却频繁出错">为什么低负载下“能跑”，高负载下却频繁出错？</a>
+      <ul>
+        <li><a href="#低负载并不是更安全的状态它只是更不容易触发竞态条件">低负载并不是“更安全”的状态，它只是“更不容易触发竞态条件”。</a></li>
+        <li><a href="#freertos-是抢占式--时间片的系统">FreeRTOS 是“抢占式 + 时间片”的系统</a></li>
+        <li><a href="#低负载时task-更容易一次跑完">低负载时：task 更容易“一次跑完”</a></li>
+        <li><a href="#高负载时task-被频繁切碎">高负载时：task 被频繁“切碎”</a></li>
+      </ul>
+    </li>
+    <li><a href="#从删除-task的时序来看问题">从“删除 task”的时序来看问题</a>
+      <ul>
+        <li><a href="#vtaskdelete-是瞬时生效的"><code>vTaskDelete()</code> 是“瞬时生效”的</a></li>
+        <li><a href="#低负载下删除时机看起来刚刚好">低负载下，删除时机“看起来刚刚好”</a></li>
+        <li><a href="#高负载下删除时机极其恶劣">高负载下，删除时机极其恶劣</a></li>
+      </ul>
+    </li>
+    <li><a href="#为什么-bug-在高负载下突然变多">为什么 bug 在高负载下“突然变多”</a></li>
+    <li><a href="#这也是为什么加-delay-有时能缓解问题">这也是为什么“加 delay 有时能缓解问题”</a></li>
+    <li><a href="#为什么优雅退出能解决这个问题">为什么“优雅退出”能解决这个问题？</a></li>
+    <li><a href="#核心理念优雅结束--杀死-task">核心理念：优雅结束 ≠ 杀死 task</a></li>
+    <li><a href="#推荐方案使用-task-notify-作为退出信号">推荐方案：使用 Task Notify 作为退出信号</a>
+      <ul>
+        <li><a href="#为什么选择-task-notify">为什么选择 Task Notify？</a></li>
+      </ul>
+    </li>
+    <li><a href="#一个标准可扩展的-task-退出模型">一个标准、可扩展的 Task 退出模型</a>
+      <ul>
+        <li><a href="#1-task-主循环被动等待通知">1. Task 主循环（被动等待通知）</a></li>
+        <li><a href="#2-外部请求-task-退出">2. 外部请求 task 退出</a></li>
+        <li><a href="#为什么要判断-notify--task_notify_stop">为什么要判断 <code>notify &amp; TASK_NOTIFY_STOP</code>？</a></li>
+      </ul>
+    </li>
+    <li><a href="#总结">总结</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h2 id="如何优雅地结束一个线程pt1">如何优雅地结束一个线程Pt1<a href="#如何优雅地结束一个线程pt1" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>在 FreeRTOS 的实际工程中**“结束一个 task”**远比表面上看起来复杂。</p>
+<p>很多开发者在初期都会选择最直接的方式：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">vTaskDelete(task_handle);
+</code></pre></div><p>在低负载、低并发、功能简单的 Demo 中，这种做法<strong>往往不会立即出问题</strong>。
+但在<strong>多线程、高负载、资源密集</strong>的系统中，这种“硬删除”方式，<strong>极容易引发隐蔽而致命的问题</strong>。</p>
+<p>本文将结合一个真实的 FreeRTOS 使用场景，说明：</p>
+<ul>
+<li>为什么 <code>vTaskDelete()</code> 在工程中是危险的</li>
+<li>问题通常是如何被触发的</li>
+<li>什么才是**“优雅结束一个 task”**的正确方式</li>
+<li>为什么 <code>Task Notify</code> 是最轻量、最安全的方案之一</li>
+</ul>
+<hr>
+<h2 id="问题背景一个看似无害的发送任务">问题背景：一个看似无害的发送任务<a href="#问题背景一个看似无害的发送任务" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>下面是一个典型的 FreeRTOS task，用于从队列中取数据并通过 WebSocket 发送：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">ws_send_task</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg)
+{
+    ws_sender_ctx_t <span style="color:#f92672">*</span>ctx <span style="color:#f92672">=</span> (ws_sender_ctx_t <span style="color:#f92672">*</span>)arg;
+    jpeg_msg_t msg;
+
+    <span style="color:#66d9ef">while</span> (<span style="color:#ae81ff">1</span>)
+    {
+        <span style="color:#66d9ef">if</span> (xQueueReceive(ctx<span style="color:#f92672">-&gt;</span>queue, <span style="color:#f92672">&amp;</span>msg, portMAX_DELAY) <span style="color:#f92672">==</span> pdPASS)
+        {
+            ws_send_all(msg.buf, msg.len, ctx<span style="color:#f92672">-&gt;</span>sendType, ctx<span style="color:#f92672">-&gt;</span>channel);
+
+            <span style="color:#66d9ef">if</span> (msg.buf)
+            {
+                heap_caps_free(msg.buf);
+            }
+
+            <span style="color:#75715e">// 避免在高负载下持续占用 CPU
+</span><span style="color:#75715e"></span>            vTaskDelay(<span style="color:#ae81ff">1</span>);
+        }
+    }
+}
+</code></pre></div><p>这个 task 看起来非常“规矩”：</p>
+<ul>
+<li>使用 <code>xQueueReceive()</code> 阻塞等待数据</li>
+<li>正确释放 heap</li>
+<li>主动让出时间片</li>
+</ul>
+<p>在系统运行一段时间后，我们希望<strong>关闭这个 WebSocket 发送功能，于是直接：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">vTaskDelete(ws_send_task_handle);
+</code></pre></div><p>在低负载时，这段代码<strong>可能长期运行都没问题</strong>。</p>
+<p>但在高负载场景下（例如 USB + 网络 + 编码并发）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">assert failed: xQueueGenericSend queue.c:937
+(!( ( pvItemToQueue == ((void *)0) ) &amp;&amp; ( pxQueue-&gt;uxItemSize != ( UBaseType_t ) 0U ) ))
+</code></pre></div><p>系统直接异常</p>
+<hr>
+<h2 id="为什么直接-vtaskdelete-是危险的">为什么直接 <code>vTaskDelete()</code> 是危险的<a href="#为什么直接-vtaskdelete-是危险的" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>FreeRTOS 不会“替你善后”，<code>vTaskDelete()</code> 的语义非常简单：</p>
+<p>立刻将 task 从调度器中移除，并释放 TCB 与 stack</p>
+<p>它不会：等待 task 退出临界区、等待 task 释放 mutex / queue / heap 、不会通知其他 task “这个 task 已经不存在”</p>
+<p>多线程系统中，资源是“共享的”</p>
+<p>以本例为例：</p>
+<ul>
+<li>其他 task 仍然在向 <code>ctx-&gt;queue</code> 里 <code>xQueueSend()</code></li>
+<li>但接收 task 已经被删除</li>
+<li>queue 仍然存在，但<strong>上下游逻辑已经被破坏</strong></li>
+</ul>
+<p>这会导致：</p>
+<ul>
+<li>发送者向“没人处理”的队列写数据</li>
+<li>消费者永远消失</li>
+<li>数据生命周期被打断</li>
+<li>最终在某个不可预测的时刻触发 assert</li>
+</ul>
+<p>在 CPU 负载高、时间片切换频繁的情况下：</p>
+<ul>
+<li>task 被删除的时机更不可控</li>
+<li>更容易发生在“操作进行到一半”的状态</li>
+<li>bug 更容易暴露</li>
+</ul>
+<p>**这就是为什么：**同一份代码，低负载下“看起来没问题”，高负载下却频繁炸锅</p>
+<hr>
+<h2 id="为什么低负载下能跑高负载下却频繁出错">为什么低负载下“能跑”，高负载下却频繁出错？<a href="#为什么低负载下能跑高负载下却频繁出错" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>这是 FreeRTOS（乃至所有 RTOS / 多线程系统）中<strong>最具有迷惑性的问题之一</strong>。</p>
+<p>很多严重的并发 Bug，恰恰是在 <strong>“系统跑得越顺、问题越隐蔽”</strong> 的阶段被掩盖的。</p>
+<h3 id="低负载并不是更安全的状态它只是更不容易触发竞态条件">低负载并不是“更安全”的状态，它只是“更不容易触发竞态条件”。<a href="#低负载并不是更安全的状态它只是更不容易触发竞态条件" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>换句话说：</p>
+<ul>
+<li>低负载 ≠ 没有问题</li>
+<li>低负载只是让 <strong>“时间窗口变小”</strong></li>
+<li>高负载会把这些窗口<strong>无限放大</strong></li>
+</ul>
+<h3 id="freertos-是抢占式--时间片的系统">FreeRTOS 是“抢占式 + 时间片”的系统<a href="#freertos-是抢占式--时间片的系统" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在 FreeRTOS 中（启用抢占时）：</p>
+<ul>
+<li>每个 tick 都可能发生任务切换</li>
+<li>高优先级 task 可以随时打断低优先级 task</li>
+<li>同优先级 task 通过时间片轮转</li>
+</ul>
+<p><strong>这意味着：</strong></p>
+<blockquote>
+<p>你的代码在“任何一条指令之后”，都有可能被打断。</p>
+</blockquote>
+<h3 id="低负载时task-更容易一次跑完">低负载时：task 更容易“一次跑完”<a href="#低负载时task-更容易一次跑完" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在低负载场景下：</p>
+<ul>
+<li>系统中 runnable task 少</li>
+<li>CPU 空闲时间多</li>
+<li>一个 task 往往能连续执行较长时间</li>
+</ul>
+<p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">xQueueReceive()
+<span style="color:#f92672">-&gt;</span> ws_send_all()
+<span style="color:#f92672">-&gt;</span> heap_caps_free()
+<span style="color:#f92672">-&gt;</span> vTaskDelay(<span style="color:#ae81ff">1</span>)
+</code></pre></div><p><strong>很可能在一次调度周期内全部执行完</strong>。</p>
+<p>于是你会产生一种错觉：</p>
+<blockquote>
+<p>“这个 task 执行是原子的。”</p>
+</blockquote>
+<p>但这是<strong>错觉</strong>。</p>
+<h3 id="高负载时task-被频繁切碎">高负载时：task 被频繁“切碎”<a href="#高负载时task-被频繁切碎" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在高负载场景下：</p>
+<ul>
+<li>更多 task 处于 ready 状态</li>
+<li>中断更频繁</li>
+<li>高优先级 task 更常抢占</li>
+</ul>
+<p>你的 task 可能变成这样执行：</p>
+<pre tabindex="0"><code>xQueueReceive() 执行一半
+→ 被 USB ISR 打断
+→ 切换到网络 task
+→ 切换到编码 task
+→ 再切回来
+</code></pre><p><strong>同一段代码，被拆成几十个不连续的时间片执行。</strong></p>
+<hr>
+<h2 id="从删除-task的时序来看问题">从“删除 task”的时序来看问题<a href="#从删除-task的时序来看问题" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="vtaskdelete-是瞬时生效的"><code>vTaskDelete()</code> 是“瞬时生效”的<a href="#vtaskdelete-是瞬时生效的" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>当你调用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">vTaskDelete(task_handle);
+</code></pre></div><p>FreeRTOS 会：</p>
+<ul>
+<li>立刻把 task 从 ready / blocked 列表中移除</li>
+<li>释放 task 的 TCB 和 stack</li>
+<li>不等待 task 当前执行点</li>
+</ul>
+<p><strong>也就是说：</strong></p>
+<blockquote>
+<p>task 可能“死在任何一条指令上”。</p>
+</blockquote>
+<h3 id="低负载下删除时机看起来刚刚好">低负载下，删除时机“看起来刚刚好”<a href="#低负载下删除时机看起来刚刚好" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在低负载下：</p>
+<ul>
+<li>task 大多处于 <code>xQueueReceive()</code> 阻塞态</li>
+<li>或刚好执行完一轮逻辑</li>
+<li>删除发生在一个“安全点”</li>
+</ul>
+<p>你以为：</p>
+<blockquote>
+<p>“我删得挺干净的。”</p>
+</blockquote>
+<p>实际上只是<strong>运气好</strong>。</p>
+<h3 id="高负载下删除时机极其恶劣">高负载下，删除时机极其恶劣<a href="#高负载下删除时机极其恶劣" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在高负载下，删除很可能发生在：</p>
+<ul>
+<li>正在访问 queue 内部结构</li>
+<li>正在 <code>heap_caps_free()</code></li>
+<li>正在持有 mutex</li>
+<li>正在准备写 socket / USB</li>
+</ul>
+<p>这时直接删除 task，相当于：</p>
+<blockquote>
+<p><strong>把一个正在干活的工人瞬间“抹掉”，工具还在半空中。</strong></p>
+</blockquote>
+<hr>
+<h2 id="为什么-bug-在高负载下突然变多">为什么 bug 在高负载下“突然变多”<a href="#为什么-bug-在高负载下突然变多" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>这是一个<strong>典型的概率问题</strong>。</p>
+<p>可以简单理解为：</p>
+<pre tabindex="0"><code>Bug 触发概率 = 时间窗口 × 调度频率 × 并发复杂度
+</code></pre><ul>
+<li>低负载 → 时间窗口小 → 触发概率低</li>
+<li>高负载 → 时间窗口大 → 触发概率指数上升</li>
+</ul>
+<p><strong>其实Bug 一直都在那里，只是之前你没踩中。</strong></p>
+<hr>
+<h2 id="这也是为什么加-delay-有时能缓解问题">这也是为什么“加 delay 有时能缓解问题”<a href="#这也是为什么加-delay-有时能缓解问题" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>很多人会发现：</p>
+<blockquote>
+<p>“加个 vTaskDelay()，好像不炸了。”</p>
+</blockquote>
+<p>这是因为：</p>
+<ul>
+<li>延时改变了调度节奏</li>
+<li>偶然缩小了竞态窗口</li>
+<li>并没有解决根因</li>
+</ul>
+<p><strong>这是典型的“掩盖问题”，不是解决问题。</strong></p>
+<hr>
+<h2 id="为什么优雅退出能解决这个问题">为什么“优雅退出”能解决这个问题？<a href="#为什么优雅退出能解决这个问题" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>因为：</p>
+<ul>
+<li>task <strong>只在自己安全的时机退出</strong></li>
+<li>所有 API 都能完整返回</li>
+<li>所有资源都有机会释放</li>
+<li>调度器状态始终一致</li>
+</ul>
+<p><strong>它不是“避免并发”，而是“尊重并发”。</strong></p>
+<p>低负载让 Bug 隐身，高负载让 Bug 现形。
+真正健壮的 FreeRTOS 代码，必须在最坏调度下也能安全退出。</p>
+<hr>
+<h2 id="核心理念优雅结束--杀死-task">核心理念：优雅结束 ≠ 杀死 task<a href="#核心理念优雅结束--杀死-task" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>在工程级 FreeRTOS 设计中，一个重要的共识是：</p>
+<blockquote>
+<p><strong>优雅结束一个 task，不是“外部杀死它”，而是“让它自己决定退出”。</strong></p>
+</blockquote>
+<p>也就是说：</p>
+<ul>
+<li>task 自己感知到“该结束了”</li>
+<li>自己跳出主循环</li>
+<li>自己释放资源</li>
+<li>自己调用 <code>vTaskDelete(NULL)</code></li>
+</ul>
+<hr>
+<h2 id="推荐方案使用-task-notify-作为退出信号">推荐方案：使用 Task Notify 作为退出信号<a href="#推荐方案使用-task-notify-作为退出信号" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="为什么选择-task-notify">为什么选择 Task Notify？<a href="#为什么选择-task-notify" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>Task Notify 的优势非常明显：</p>
+<ul>
+<li><strong>零额外内存</strong>（每个 task 自带 32-bit 通知寄存器）</li>
+<li><strong>不需要创建对象</strong>（不像 queue / semaphore）</li>
+<li><strong>延迟极低</strong></li>
+<li><strong>天然支持事件位（bit mask）</strong></li>
+</ul>
+<p>它非常适合作为：</p>
+<blockquote>
+<p><strong>“控制类信号（如 STOP / PAUSE / FLUSH）”</strong></p>
+</blockquote>
+<hr>
+<h2 id="一个标准可扩展的-task-退出模型">一个标准、可扩展的 Task 退出模型<a href="#一个标准可扩展的-task-退出模型" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="1-task-主循环被动等待通知">1. Task 主循环（被动等待通知）<a href="#1-task-主循环被动等待通知" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">worker_task</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg)
+{
+    <span style="color:#66d9ef">uint32_t</span> notify;
+
+    <span style="color:#66d9ef">while</span> (<span style="color:#ae81ff">1</span>)
+    {
+        xTaskNotifyWait(
+            <span style="color:#ae81ff">0x00</span>,            <span style="color:#75715e">// 不主动清除任何 bit
+</span><span style="color:#75715e"></span>            <span style="color:#ae81ff">0xFFFFFFFF</span>,      <span style="color:#75715e">// 退出时清除所有 bit
+</span><span style="color:#75715e"></span>            <span style="color:#f92672">&amp;</span>notify,
+            portMAX_DELAY
+        );
+
+        <span style="color:#66d9ef">if</span> (notify <span style="color:#f92672">&amp;</span> TASK_NOTIFY_STOP)
+        {
+            <span style="color:#66d9ef">break</span>;  <span style="color:#75715e">// 进入清理阶段
+</span><span style="color:#75715e"></span>        }
+
+        <span style="color:#75715e">/* === 正常工作区 === */</span>
+        do_work();
+    }
+
+    <span style="color:#75715e">/* === 清理阶段 === */</span>
+    cleanup_resources();
+
+    vTaskDelete(NULL);
+}
+</code></pre></div><hr>
+<h3 id="2-外部请求-task-退出">2. 外部请求 task 退出<a href="#2-外部请求-task-退出" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define TASK_NOTIFY_STOP   (1 &lt;&lt; 0)
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stop_worker_task</span>(TaskHandle_t worker)
+{
+    xTaskNotify(
+        worker,
+        TASK_NOTIFY_STOP,
+        eSetBits
+    );
+}
+</code></pre></div><h3 id="为什么要判断-notify--task_notify_stop">为什么要判断 <code>notify &amp; TASK_NOTIFY_STOP</code>？<a href="#为什么要判断-notify--task_notify_stop" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>这是一个非常关键、但经常被忽略的问题。</p>
+<h4 id="1-notify-不是一个值而是32-位事件集合">1. notify 不是“一个值”，而是<strong>32 位事件集合</strong><a href="#1-notify-不是一个值而是32-位事件集合" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p><code>notify</code> 本质上是一个 <strong>bit mask</strong>：</p>
+<pre tabindex="0"><code>bit0   STOP
+bit1   FLUSH
+bit2   NEW_DATA
+bit3   TIMEOUT
+...
+</code></pre><h4 id="2-如果你只判断-notify--0">2. 如果你只判断 <code>notify != 0</code><a href="#2-如果你只判断-notify--0" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">if</span> (notify) {
+    <span style="color:#66d9ef">break</span>;
+}
+</code></pre></div><p>那么：</p>
+<ul>
+<li>任意事件都会导致 task 退出</li>
+<li>后续功能扩展会直接破坏已有逻辑</li>
+<li>bug 极其隐蔽</li>
+</ul>
+<hr>
+<h2 id="总结">总结<a href="#总结" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p><strong>“优雅结束一个 task” ≠ 杀死 task</strong></p>
+<p><strong>而是：让 task 自己意识到该结束了，然后体面地收拾干净再离开。</strong></p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

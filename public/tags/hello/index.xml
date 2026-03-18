@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>hello on My New Hugo Site</title>
+    <link>https://luzekka.github.io/tags/hello/</link>
+    <description>Recent content in hello on My New Hugo Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 06 Mar 2026 14:54:18 +0800</lastBuildDate><atom:link href="https://luzekka.github.io/tags/hello/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>如何优雅地结束一个线程Pt2</title>
+      <link>https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</link>
+      <pubDate>Fri, 06 Mar 2026 14:54:18 +0800</pubDate>
+      
+      <guid>https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</guid>
+      <description>如何优雅地结束一个线程Pt2 在上一篇中，我们讨论了如何通过 Task Notify 发送控制异步信号来结束线程。但在实际工程中，如果你的任务是一个纯粹的消费者（不断从 Queue 中读取数据并处理），还有一种比有限状态机更优雅、更符合数据流逻辑的方案：哨兵信号（Sentinel/Poison Pill）。
+（二）：哨兵机制与数据同步
+核心思想：将“死亡通知”伪装成“数据” 与其从侧面（Notify）踢任务一脚，不如给它发一份“特殊的快递”。当任务从队列里领到这份快递时，它就知道：“活干完了，该下班了。”
+C
+void worker_task(void *arg) { msg_t msg; for (;;) { // 1. 正常阻塞等待数据 if (xQueueReceive(ctx-&amp;gt;queue, &amp;amp;msg, portMAX_DELAY) == pdPASS) { /* === 关键逻辑：哨兵判定 === */ // 我们定义一种特殊的组合（例如：buf==NULL 且 len==-1）作为终止信号 if (msg.buf == NULL &amp;amp;&amp;amp; msg.len == -1) { break; // 跳出循环，进入清理阶段 } /* === 正常工作区 === */ do_work(msg.buf, msg.len); // 释放数据内存 if(msg.buf) heap_caps_free(msg.buf); } } /* === 清理阶段 === */ // 此时可以确信：队列中该信号之前的所有数据都已处理完毕 cleanup_resources(); printf(&amp;quot;Worker task cleaned up and exiting.</description>
+    </item>
+    
+  </channel>
+</rss>

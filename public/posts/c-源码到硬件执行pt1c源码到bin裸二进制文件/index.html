@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>C 源码到硬件执行Pt1——C源码到Bin裸二进制文件 :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="本文深入剖析从 C 源码到二进制镜像的转化全过程，解密 ELF 文件如何通过 Section 与 Segment 的双重視角，完成从“逻辑代码”向“硬件物理映射”的跨越。" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/syntax.min.a0773cce9310cb6d8ed23e50f005448facf29a53001b57e038828daa466b25c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="https://luzekka.github.io/favicon.png">
+<link rel="apple-touch-icon" href="https://luzekka.github.io/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="C 源码到硬件执行Pt1——C源码到Bin裸二进制文件">
+<meta property="og:description" content="本文深入剖析从 C 源码到二进制镜像的转化全过程，解密 ELF 文件如何通过 Section 与 Segment 的双重視角，完成从“逻辑代码”向“硬件物理映射”的跨越。" />
+<meta property="og:url" content="https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="https://luzekka.github.io/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+  <meta property="article:section" content="底层原理" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://luzekka.github.io/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/">C 源码到硬件执行Pt1——C源码到Bin裸二进制文件</a>
+  </h1>
+  <div class="post-meta"></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="https://luzekka.github.io/tags/c%E8%AF%AD%E8%A8%80/">C语言</a>&nbsp;
+      
+      #<a href="https://luzekka.github.io/tags/%E7%BC%96%E8%AF%91%E5%99%A8/">编译器</a>&nbsp;
+      
+      #<a href="https://luzekka.github.io/tags/%E9%93%BE%E6%8E%A5/">链接</a>&nbsp;
+      
+      #<a href="https://luzekka.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#本文内容摘要">本文内容摘要</a></li>
+    <li><a href="#第一部分gcc-做了什么">第一部分：gcc 做了什么</a>
+      <ul>
+        <li><a href="#gcc-helloc--o-hello-到底做了什么"><code>gcc hello.c -o hello</code> 到底做了什么？</a></li>
+      </ul>
+    </li>
+    <li><a href="#第二部分o-文件是什么">第二部分：.o 文件是什么</a>
+      <ul>
+        <li><a href="#o文件">.o文件</a></li>
+        <li><a href="#elf-文件整体结构">ELF 文件整体结构</a></li>
+        <li><a href="#重定位的本质">重定位的本质</a></li>
+        <li><a href="#链接发生了什么">链接发生了什么</a></li>
+      </ul>
+    </li>
+    <li><a href="#第三部分从-section-到-segment">第三部分：从 Section 到 Segment</a>
+      <ul>
+        <li><a href="#section-是链接器的世界">Section 是“链接器的世界”</a></li>
+        <li><a href="#segment-是加载器的世界">Segment 是“加载器的世界”</a></li>
+        <li><a href="#section-如何变成-segment">Section 如何变成 Segment？</a></li>
+        <li><a href="#为什么必须有两套结构">为什么必须有两套结构？</a></li>
+        <li><a href="#硬件视角下的-segment-加载与执行">硬件视角下的 Segment 加载与执行</a></li>
+        <li><a href="#一个重要现象bss-不存在于文件中">一个重要现象：.bss 不存在于文件中</a></li>
+        <li><a href="#从体系结构角度的真正结论">从体系结构角度的真正结论</a></li>
+      </ul>
+    </li>
+    <li><a href="#第四部分从-elf-到-bin回归物理真实">第四部分：从 ELF 到 bin：回归物理真实</a>
+      <ul>
+        <li><a href="#为什么需要从-elf-转换为-bin">为什么需要从 ELF 转换为 bin？</a></li>
+        <li><a href="#转换的本质提取-load-段">转换的本质：提取 LOAD 段</a></li>
+        <li><a href="#关键差异对比">关键差异对比</a></li>
+        <li><a href="#转换后的物理布局">转换后的物理布局</a></li>
+      </ul>
+    </li>
+    <li><a href="#总结-3">总结</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h2 id="本文内容摘要">本文内容摘要<a href="#本文内容摘要" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<ul>
+<li>GCC 工具链执行流程</li>
+<li>可重定位文件 (.o) 的非执行属性</li>
+<li>ELF 文件静态结构</li>
+<li>重定位 (Relocation) 机制</li>
+<li>Section 与 Segment 的转换映射</li>
+</ul>
+<h2 id="第一部分gcc-做了什么">第一部分：gcc 做了什么<a href="#第一部分gcc-做了什么" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="gcc-helloc--o-hello-到底做了什么"><code>gcc hello.c -o hello</code> 到底做了什么？<a href="#gcc-helloc--o-hello-到底做了什么" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>我们从所有人都熟悉的一条命令开始：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">gcc hello.c <span style="color:#f92672">-</span>o hello
+</code></pre></div><p>很多人以为 gcc 做了一件事：把 C 变成可执行文件。</p>
+<p>实际上它做了四件完全不同的事情。</p>
+<h4 id="1预处理preprocessing">1.预处理（Preprocessing）<a href="#1预处理preprocessing" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gcc -E hello.c
+</code></pre></div><p>发生的事情：</p>
+<ul>
+<li>展开 <code>#include</code></li>
+<li>展开宏</li>
+<li>条件编译处理</li>
+<li>删除注释</li>
+</ul>
+<p>输出结果是：巨大的纯 C 文件</p>
+<p>此时：</p>
+<ul>
+<li>没有编译</li>
+<li>没有生成机器码</li>
+<li>只是文本替换</li>
+</ul>
+<h4 id="2编译compilation">2.编译（Compilation）<a href="#2编译compilation" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gcc -S hello.c
+</code></pre></div><p>发生的事情：</p>
+<ul>
+<li>语法分析</li>
+<li>生成抽象语法树</li>
+<li>语义检查</li>
+<li>优化</li>
+<li>生成汇编代码</li>
+</ul>
+<p>输出：</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">main:
+    addi sp, sp, -16
+    ...
+</code></pre><p>此时：</p>
+<ul>
+<li>仍然没有机器码</li>
+<li>只是目标架构的汇编</li>
+</ul>
+<h4 id="3汇编assembly">3.汇编（Assembly）<a href="#3汇编assembly" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gcc -c hello.c
+</code></pre></div><p>这一步会：</p>
+<ul>
+<li>把汇编变成机器码</li>
+<li>生成 ELF 格式的可重定位目标文件,关于可重定位目标文件，我们会在下文进行展开描述。</li>
+</ul>
+<p>输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">hello.o
+</code></pre></div><p>这时的文件是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">readelf -h hello.o
+</code></pre></div><p>会显示：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Type: REL <span style="color:#f92672">(</span>Relocatable file<span style="color:#f92672">)</span>
+</code></pre></div><p>关键点来了：<code>.o</code> 文件不能运行。</p>
+<p>因为：</p>
+<ul>
+<li>所有函数地址还未确定</li>
+<li>外部符号未解析</li>
+<li>section （代码节 如.text 我们在下文会有详细介绍） 只是逻辑片段</li>
+<li>没有最终内存布局</li>
+</ul>
+<p>关于<code>.o</code>文件为什么不能文件，将在下文有更详细的讲述。</p>
+<h4 id="4链接linking">4.链接（Linking）<a href="#4链接linking" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这才是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gcc hello.c -o hello
+</code></pre></div><p>的最后一步。</p>
+<p>等价于：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gcc hello.o -lc -o hello
+</code></pre></div><p>然后 gcc 会自动调用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ld
+</code></pre></div><p>并且：</p>
+<ul>
+<li>链接 libc</li>
+<li>链接启动文件</li>
+<li>选择默认链接脚本</li>
+<li>分配虚拟地址</li>
+<li>生成最终 ELF</li>
+</ul>
+<p>现在文件类型变成：</p>
+<pre tabindex="0"><code>readelf -h hello
+Type: EXEC (Executable file)
+</code></pre><h5 id="链接器如何把多个-o-变成一个可执行文件">链接器如何把多个 <code>.o</code> 变成一个可执行文件？<a href="#链接器如何把多个-o-变成一个可执行文件" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>我们可以用一个非常简单的例子：</p>
+<p>main.c</p>
+<pre tabindex="0"><code>int foo();
+int main() {
+  return foo();
+}
+</code></pre><p>foo.c</p>
+<pre tabindex="0"><code>int foo() {
+  return 42;
+}
+</code></pre><p>然后：</p>
+<pre tabindex="0"><code>gcc -c main.c
+gcc -c foo.c
+gcc main.o foo.o -o hello
+</code></pre><p>现在问题来了：</p>
+<p><strong>关键问题</strong></p>
+<p>在 main.o 里：</p>
+<ul>
+<li><code>foo</code> 是未定义符号</li>
+<li>地址未知</li>
+</ul>
+<p>在 foo.o 里：</p>
+<ul>
+<li><code>foo</code> 有定义</li>
+<li>但地址仍然未知</li>
+</ul>
+<p><strong>链接器的具体行为过程如下</strong></p>
+<ol>
+<li>收集所有 <code>.o</code> 的符号表</li>
+<li>建立全局符号表</li>
+<li>找到：
+<ul>
+<li>main 里需要 foo</li>
+<li>foo.o 提供 foo</li>
+</ul>
+</li>
+<li>决定：
+<ul>
+<li>foo 最终地址是多少</li>
+<li>main 调 foo 的跳转要修正为多少</li>
+</ul>
+</li>
+</ol>
+<p><strong>这个过程叫：符号解析 + 重定位</strong></p>
+<h2 id="第二部分o-文件是什么">第二部分：.o 文件是什么<a href="#第二部分o-文件是什么" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="o文件">.o文件<a href="#o文件" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>简单来说，.o 文件（Object File，目标文件）是 ELF 格式的一种具体实现形态。在 Linux 和大多数嵌入式系统中，.o 文件本质上就是 ELF 格式。ELF 是一种统一的文件格式规范，而 .o 文件（可重定位文件）是该规范在编译流程中间阶段的具体呈现形式，其目的是为后续的链接过程提供标准化的代码与数据输入。</p>
+<p><strong>以下是它们关系的详细教科书式定义：</strong></p>
+<ol>
+<li>定义与归属关系</li>
+</ol>
+<ul>
+<li>
+<p>ELF (Executable and Linkable Format)：是一种文件格式标准。它定义了二进制文件（代码、数据、符号等）在硬盘上应该如何组织。</p>
+</li>
+<li>
+<p>.o 文件 (Relocatable File)：是 ELF 标准中定义的三种主要类型之一。在 readelf -h 的输出中，它的 Type 字段显示为 REL (Relocatable file)。</p>
+</li>
+</ul>
+<ol start="2">
+<li>.o 文件在 ELF 家族中的位置</li>
+</ol>
+<p>ELF 格式标准涵盖了程序生命周期的不同阶段，.o 只是其中一个阶段：</p>
+<ul>
+<li>
+<p>可重定位文件 (.o)：由汇编器生成，包含机器码和数据，但地址未定，不能直接运行。</p>
+</li>
+<li>
+<p>可执行文件 (Executable)：由链接器将多个 .o 合并而成，包含完整的运行内容（如 a.out），可以直接运行。</p>
+</li>
+<li>
+<p>共享目标文件 (.so)：动态链接库，在程序运行时被加载。</p>
+</li>
+</ul>
+<ol start="3">
+<li>.o 文件作为 ELF 的具体特征
+虽然 .o 是 ELF 格式，但它与最终的可执行文件（EXEC）有几个关键区别：</li>
+</ol>
+<p><strong>只有 Section，没有 Segment：</strong></p>
+<blockquote>
+<p>Section指程序节，如.text,.data,.bss等，Segment指程序段常见类型有LOAD等，在下文有对二者的详细描述</p>
+</blockquote>
+<p>.o 文件主要由 Section Header Table 组织，分为 .text、.data、.bss 等逻辑节，方便链接器合并。</p>
+<p>它通常不包含 Program Header Table（Segment），因为 Segment 是给操作系统映射内存用的，而 .o 还没到那一步。</p>
+<p><strong>包含重定位表 (.rel.text / .rel.data等)：</strong></p>
+<p>这是 .o 文件的核心特征。因为它内部引用的函数（如 printf）地址还没确定，它必须带有一张“报修单”，告诉链接器哪里需要填入真正的地址。</p>
+<p><strong>基准地址为 0：</strong></p>
+<p>在 .o 文件内部，代码段的起始地址通常从 0x00000000 开始。它是一个“相对位置”，只有在链接阶段，链接器才会给它分配真正的“绝对地址”。</p>
+<h3 id="elf-文件整体结构">ELF 文件整体结构<a href="#elf-文件整体结构" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="elf文件">ELF文件<a href="#elf文件" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>ELF 的三大核心组成：</p>
+<ul>
+<li><strong>ELF Header（文件头）</strong>：位于文件开头，描述文件的总体属性。</li>
+<li><strong>Section Header Table（节头表）</strong>：描述文件中所有 Section 的索引表，是链接视图的地址指南。</li>
+<li><strong>Sections（节数据区）</strong>：文件的实际内容主体，包含指令、数据、符号表等。</li>
+</ul>
+<h4 id="elf-header">ELF Header<a href="#elf-header" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>它记录：</p>
+<ul>
+<li><strong>Magic Number</strong>：文件格式标识（7f 45 4c 46）。</li>
+<li><strong>Type（文件类型）</strong>：例如 <code>REL</code>（可重定位文件，即 <code>.o</code>）或 <code>EXEC</code>（可执行文件）。</li>
+<li><strong>Machine（目标架构）</strong>：如 RISC-V、ARM 或 x86-64。</li>
+<li><strong>Entry point address（入口点地址）</strong>：程序执行的起点。在 <code>.o</code> 文件中，此项通常为 <code>0</code>。</li>
+<li><strong>Start of section headers</strong>：节头表在文件中的偏移位置。</li>
+</ul>
+<p><strong>关于入口点 (Entry)</strong>：<code>.o</code> 文件 <code>e_entry = 0</code> ，因为 <code>.o</code> 文件尚未分配最终运行地址，且不是完整的执行程序，故无实际入口。</p>
+<p>**Section Header Table **：它是 ELF 的“目录”。没有它，链接器就找不到 <code>.text</code> 或 <code>.data</code> 在文件中的具体位置。</p>
+<h4 id="section">Section<a href="#section" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>一个 <code>.o</code> 文件通常包含：</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>作用</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>.text</td>
+<td>编译后的机器指令（代码）。</td>
+<td>只读，可执行。</td>
+</tr>
+<tr>
+<td>.data</td>
+<td>已初始化的全局变量和静态局部变量。</td>
+<td>初始值存储在文件中。</td>
+</tr>
+<tr>
+<td>.bss</td>
+<td>未初始化（或初始化为 0）的全局变量和静态局部变量。</td>
+<td><strong>不占用文件空间</strong>，仅记录大小。</td>
+</tr>
+<tr>
+<td>.rodata</td>
+<td>只读常量数据（如字符串字面量、const 变量）。</td>
+<td>通常映射到只读内存。</td>
+</tr>
+<tr>
+<td>.symtab</td>
+<td>符号表，记录函数和变量的定义与引用信息。</td>
+<td>链接器解析符号的核心依据。</td>
+</tr>
+<tr>
+<td>.strtab</td>
+<td>字符串表，存储符号名、节名等文本字符串。</td>
+<td>供其他 Section 索引。</td>
+</tr>
+<tr>
+<td>.rel.text</td>
+<td>针对 .text 的重定位信息。</td>
+<td>记录哪些指令地址需要链接时修补。</td>
+</tr>
+<tr>
+<td>.rel.data</td>
+<td>针对 .data 的重定位信息。</td>
+<td>记录哪些指针变量需要链接时修补。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="对比data与bss">对比.data与.bss<a href="#对比data与bss" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>.bss 段不占文件空间”是一个极其重要的物理特性，它直接体现了二进制文件设计的“吝啬”与高效。</p>
+<p>我们可以通过以下三个维度来彻底拆解这个概念：</p>
+<h5 id="1现象对比-data-与-bss">1.现象：对比 .data 与 .bss<a href="#1现象对比-data-与-bss" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>假设你写了两个全局数组，一个初始化了，一个没初始化：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">char</span> data_array[<span style="color:#ae81ff">1024</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1024</span>] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">1</span>}; <span style="color:#75715e">// 1MB，已初始化，属于 .data
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">char</span> bss_array[<span style="color:#ae81ff">1024</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1024</span>];        <span style="color:#75715e">// 1MB，未初始化，属于 .bss
+</span></code></pre></div><p>.**data 的情况：**因为你明确要求数组里的第一个值是 1（其余默认是 0），编译器必须在硬盘上的 ELF 文件里实实在在地挖出 1MB 的空间，把这些 1 和 0 存进去。否则，程序运行上电时，从哪里读取这个 1 呢？</p>
+<p>结果：你的 .o 或可执行文件体积会增加 1MB。</p>
+<p>**.bss 的情况：**C 语言标准规定，未初始化的全局变量默认初始值为 0。既然全是 0，为什么还要在硬盘里存 1MB 的 0 呢？那太浪费空间了。</p>
+<p>结果：链接器只在 ELF 文件的 Section Header 里记上一笔：“我需要一个名为 .bss 的空间，大小是 1MB”。但在文件的实际数据区里，不占用任何字节。</p>
+<h5 id="2本质size-的两个维度">2.本质：Size 的两个维度<a href="#2本质size-的两个维度" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>在 ELF 的 Program Header 中，有两个关键字段能让你看清真相：</p>
+<p>**FileSiz (File Size)：**该段在硬盘文件中实际占用的字节数。</p>
+<p>**MemSiz (Memory Size)：**该段在运行内存中申请占用的字节数。</p>
+<p>对于包含 .bss 的 Segment 来说：
+MemSiz 永远大于 FileSiz。
+多出来的这部分差额，就是 .bss 的大小。它在硬盘里是“虚”的（不占地方），在内存里是“实”的（占用空间）。</p>
+<h5 id="3谁来负责把虚变实">3.谁来负责把“虚”变“实”？<a href="#3谁来负责把虚变实" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>既然硬盘里没存这些 0，那么程序运行的时候，内存里的 0 是哪来的？</p>
+<p><strong>加载器/启动代码的责任：</strong></p>
+<p>在 Linux 中：操作系统内核加载 ELF 时，看到 MemSiz &gt; FileSiz，会自动在内存里多分配一块空间，并直接调用清零指令。</p>
+<p>在裸机/嵌入式中： 我们的 Startup Code（启动代码）会有一段循环代码，读取链接脚本里导出的 .bss 起始和结束地址，手动用 str 指令把那块 RAM 全部写成 0。</p>
+<h5 id="总结">总结<a href="#总结" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>“不占文件空间”的意思是：</p>
+<p>为了节省硬盘/闪存空间，ELF 文件只记录 .bss 段的长度信息，而不存储其具体的零字节内容。</p>
+<p>.text / .data：既有长度信息，也有实际内容（代码指令或初始值）。</p>
+<p>.bss：只有长度信息，内容全靠程序运行前现场“初始化”。</p>
+<p>这就是为什么你可以定义一个巨大的全局数组 char buffer[1024<em>1024</em>1024]（1GB），而编译出来的可执行文件依然只有几 KB 的原因。</p>
+<h3 id="重定位的本质">重定位的本质<a href="#重定位的本质" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="重定位到底在修什么">重定位到底在修什么？<a href="#重定位到底在修什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>回到本质：</p>
+<p>当编译器生成机器码时，如果某条指令需要：</p>
+<ul>
+<li>访问一个全局变量</li>
+<li>调用一个函数</li>
+<li>取某个符号地址</li>
+</ul>
+<p>但它不知道最终地址是多少</p>
+<p>它就会：</p>
+<blockquote>
+<p>在那条指令对应的位置留下一个“待修补记录”</p>
+</blockquote>
+<p>这条记录就进入 <code>.rel.xxx</code> 或 <code>.rela.xxx</code>。</p>
+<h4 id="为什么bssrodatasymtabstrtab没有重定位信息">为什么bss，rodata，symtab，strtab没有重定位信息<a href="#为什么bssrodatasymtabstrtab没有重定位信息" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p><strong>为什么 .text 通常有重定位？</strong></p>
+<p>因为代码里经常有：</p>
+<pre tabindex="0"><code>extern int g;
+int main() { return g; }
+</code></pre><p>生成的指令里：</p>
+<pre tabindex="0"><code>lw a0, g
+</code></pre><p>这里的 g 地址未知 → 需要修补 → 产生 <code>.rel.text</code></p>
+<p><strong>为什么 .data 可能有重定位？</strong></p>
+<p>比如：</p>
+<pre tabindex="0"><code>int x = 10;
+int *p = &amp;x;
+</code></pre><p><code>p</code> 的初始值是 <code>&amp;x</code>。</p>
+<p>但 <code>x</code> 的地址链接前不知道。</p>
+<p>所以：</p>
+<pre tabindex="0"><code>.data` 里某个位置需要修补 → 产生 `.rel.data
+</code></pre><p><strong>那为什么 .bss 没有重定位？</strong></p>
+<p>因为：</p>
+<p><code>.bss</code> 本质上是：</p>
+<blockquote>
+<p>未初始化的全局变量</p>
+</blockquote>
+<p>例如：</p>
+<pre tabindex="0"><code>int a;
+int b[100];
+</code></pre><p>它们：</p>
+<ul>
+<li>没有初始值</li>
+<li>不占文件空间</li>
+<li>链接后只是分配一块零填充内存</li>
+</ul>
+<p><strong>为什么 .rodata 通常没有重定位？</strong></p>
+<p><code>.rodata</code> 里一般是：</p>
+<pre tabindex="0"><code>const char *s = &quot;hello&quot;;
+</code></pre><p>字符串常量本身：</p>
+<pre tabindex="0"><code>&quot;h e l l o \0&quot;
+</code></pre><p>这只是纯字节数据。</p>
+<p>它不引用别的符号。</p>
+<p>所以：</p>
+<blockquote>
+<p>没有需要修补的地址字段</p>
+</blockquote>
+<p>但是如果：</p>
+<pre tabindex="0"><code>extern int g;
+const int *p = &amp;g;
+</code></pre><p>那么 <code>.rodata</code> 里就会出现重定位。</p>
+<p>所以更准确说法是：</p>
+<blockquote>
+<p>.rodata “通常”没有重定位，但不是绝对。</p>
+</blockquote>
+<p><strong>为什么 .symtab 没有重定位？</strong></p>
+<p>这个非常关键。</p>
+<p><code>.symtab</code> 是：</p>
+<blockquote>
+<p>符号表</p>
+</blockquote>
+<p>它只是记录：</p>
+<p>| 符号名 | 类型 | 所属 section | 相对偏移 |</p>
+<p>它不是程序执行内容。</p>
+<p>链接器用它来：</p>
+<ul>
+<li>解析符号</li>
+<li>计算地址</li>
+<li>修补 relocation</li>
+</ul>
+<p>一旦生成最终 ELF：</p>
+<ul>
+<li>可执行文件可能压根不带 <code>.symtab</code></li>
+<li>或者被 strip 掉</li>
+</ul>
+<p>所以它本身不需要重定位。</p>
+<p><strong>为什么 .strtab 没有重定位？</strong></p>
+<p><code>.strtab</code> 是字符串表。</p>
+<p>里面只是：</p>
+<pre tabindex="0"><code>&quot;main\0&quot;
+&quot;printf\0&quot;
+&quot;_start\0&quot;
+</code></pre><p>它只是给 <code>.symtab</code> 提供名字。</p>
+<p>程序运行时根本不访问它。</p>
+<p>没有地址依赖 → 不需要重定位。</p>
+<h5 id="总结-1">总结<a href="#总结-1" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>可以这样分类：</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>是否参与执行</th>
+<th>是否可能含未定地址</th>
+<th>是否需要重定位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>.text</td>
+<td>是</td>
+<td>经常</td>
+<td>是</td>
+</tr>
+<tr>
+<td>.data</td>
+<td>是</td>
+<td>可能</td>
+<td>可能</td>
+</tr>
+<tr>
+<td>.bss</td>
+<td>是</td>
+<td>几乎不</td>
+<td>很少</td>
+</tr>
+<tr>
+<td>.rodata</td>
+<td>是</td>
+<td>少</td>
+<td>少</td>
+</tr>
+<tr>
+<td>.symtab</td>
+<td>否</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td>.strtab</td>
+<td>否</td>
+<td>否</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<h4 id="更具上述总结重新进行推论">更具上述总结重新进行推论<a href="#更具上述总结重新进行推论" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p><strong>.symtab</strong></p>
+<p>它只是一个符号描述表：</p>
+<ul>
+<li>符号名</li>
+<li>所属 section</li>
+<li>相对偏移</li>
+<li>类型</li>
+</ul>
+<p>它不参与运行，也不嵌入“待修补地址常量”。</p>
+<p>所以：</p>
+<p>✔ 永远不会有 <code>.rel.symtab</code></p>
+<hr>
+<p><strong>.strtab</strong></p>
+<p>只是字符串池：</p>
+<pre tabindex="0"><code>&quot;main\0&quot;
+&quot;printf\0&quot;
+</code></pre><p>纯文本数据，不涉及地址依赖。</p>
+<p>✔ 永远不会有 <code>.rel.strtab</code></p>
+<hr>
+<p><strong>.bss</strong></p>
+<p><code>.bss</code> 的本质是：</p>
+<blockquote>
+<p>“未初始化数据占位区”</p>
+</blockquote>
+<p>它在 <code>.o</code> 文件里甚至不占实际字节，只是一个大小声明。</p>
+<p>它内部：</p>
+<ul>
+<li>没有初始化值</li>
+<li>没有地址常量</li>
+</ul>
+<p>因此通常：</p>
+<p>✔ 不产生重定位</p>
+<p>但注意一个关键点：</p>
+<p>如果<strong>别的 section 引用了 .bss 里的符号</strong>，
+重定位出现在“引用者”那里，而不是 <code>.bss</code> 里。</p>
+<hr>
+<p><strong>.rodata</strong></p>
+<p>通常只是：</p>
+<pre tabindex="0"><code>常量数字
+字符串字面量
+</code></pre><p>如果这些常量不引用其他符号：</p>
+<p>✔ 不需要重定位</p>
+<p>但如果你写：</p>
+<pre tabindex="0"><code>extern int g;
+const int *p = &amp;g;
+</code></pre><p>那 <code>.rodata</code> 里就嵌入了 <code>&amp;g</code> 的地址占位符。</p>
+<p>这时：</p>
+<p>✔ 会产生 <code>.rel.rodata</code></p>
+<p>所以它是“可能有”。</p>
+<hr>
+<p><strong>.data</strong></p>
+<p>如果是：</p>
+<pre tabindex="0"><code>int x = 10;
+</code></pre><p>没有引用符号：</p>
+<p>✔ 不需要重定位</p>
+<p>如果是：</p>
+<pre tabindex="0"><code>extern int g;
+int *p = &amp;g;
+</code></pre><p>✔ 需要重定位</p>
+<hr>
+<p><strong>.text</strong></p>
+<p>最常见需要重定位的 section。</p>
+<p>因为：</p>
+<ul>
+<li>函数调用</li>
+<li>全局变量访问</li>
+<li>取地址操作</li>
+</ul>
+<p>都会嵌入“未定地址”。</p>
+<h3 id="链接发生了什么">链接发生了什么<a href="#链接发生了什么" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>重定位（Relocation）是链接过程的核心步骤。当编译器生成 <code>main.o</code> 时，它并不知道外部函数 <code>foo</code> 的精确地址，因此会在调用处留下一个<strong>地址占位符</strong>（通常是全 0），并同时在 <code>.rel.text</code> 节中记录一条“修补申请”。</p>
+<p><strong>链接器的任务就是：</strong></p>
+<ol>
+<li>计算出 <code>foo</code> 在最终可执行文件中的绝对地址（或相对偏移）。</li>
+<li>根据重定位表的指示，回过头来将这个真实地址填入 <code>main.o</code> 的占位符处。</li>
+</ol>
+<p>我们继续使用上文的代码来进行演示</p>
+<p>main.c</p>
+<pre tabindex="0"><code>int foo();
+int main() {
+  return foo();
+}
+</code></pre><p>foo.c</p>
+<pre tabindex="0"><code>int foo() {
+  return 42;
+}
+</code></pre><p>然后：</p>
+<pre tabindex="0"><code>gcc -c main.c
+gcc -c foo.c
+gcc main.o foo.o -o hello
+</code></pre><p>好，我们现在来使用命令查看各个过程文件的内部信息</p>
+<h4 id="1-查看可重定位文件-maino">(1) 查看可重定位文件 <code>main.o</code><a href="#1-查看可重定位文件-maino" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">objdump -d main.o
+</code></pre></div><p>这条命令的意思是：请把 <code>main.o</code> 这个目标文件里的二进制代码，翻译成人能看懂的汇编代码给我看。</p>
+<p>输出如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+main.o：     文件格式 elf64-x86-64
+
+
+Disassembly of section .text:
+
+<span style="color:#ae81ff">0000000000000000</span> &lt;main&gt;:
+   0:	f3 0f 1e fa          	endbr64 
+   4:	<span style="color:#ae81ff">55</span>                   	push   %rbp
+   5:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> e5             	mov    %rsp,%rbp
+   8:	b8 <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>       	mov    $0x0,%eax
+   d:	e8 <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>       	call   <span style="color:#ae81ff">12</span> &lt;main+0x12&gt;
+  12:	5d                   	pop    %rbp
+  13:	c3                   	ret   
+</code></pre></div><h4 id="2-查看重定位表项">(2) 查看重定位表项<a href="#2-查看重定位表项" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">objdump -r main.o
+</code></pre></div><p>这条命令的意思是：<strong>显示目标文件（<code>.o</code>）中的重定位表（Relocation Table）。</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+main.o：     文件格式 elf64-x86-64
+
+RELOCATION RECORDS FOR <span style="color:#f92672">[</span>.text<span style="color:#f92672">]</span>:
+OFFSET           TYPE              VALUE 
+000000000000000e R_X86_64_PLT32    foo-0x0000000000000004
+
+
+RELOCATION RECORDS FOR <span style="color:#f92672">[</span>.eh_frame<span style="color:#f92672">]</span>:
+OFFSET           TYPE              VALUE 
+<span style="color:#ae81ff">0000000000000020</span> R_X86_64_PC32     .text
+
+
+
+</code></pre></div><h5 id="relocation-records-for-text">RELOCATION RECORDS FOR [.text]<a href="#relocation-records-for-text" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>这是你的代码段。它告诉链接器：在 main.o 的机器码里，有些跳转地址是错的，需要修正。</p>
+<ul>
+<li><strong>OFFSET 000000000000000e:</strong>
+在 .text 段的第 14 个字节（16 进制的 e）处，有一个需要填空的坑。如果你用 objdump -d 看这一行，你会发现它对应的指令是 call。</li>
+<li><strong>TYPE R_X86_64_PLT32:</strong>
+这是一种重定位方式。PLT（Procedure Linkage Table）代表这个函数可能在动态链接库（如 .so 文件）里。它告诉链接器：“请计算从当前位置到目标函数跳转表的相对偏移量。”</li>
+<li><strong>VALUE foo-0x0000000000000004:</strong>
+目标是 foo 函数。减去 4 是因为 call 指令本身占用了字节，计算相对偏移量需要从指令结束后的位置算起。
+结论： 编译器说：“我不知道 foo 在哪，链接器你帮我把第 e 字节处的 00 00 00 00 换成 foo 的真实偏移量。”</li>
+</ul>
+<h5 id="relocation-records-for-eh_frame">RELOCATION RECORDS FOR [.eh_frame]<a href="#relocation-records-for-eh_frame" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<ul>
+<li>
+<p><strong><code>.eh_frame</code> 是一个索引表。</strong></p>
+<p><code>.eh_frame</code> 是一个<strong>索引表</strong>它的任务是如果程序运行中突然“发生意外”（比如 C++ 抛出异常，或者程序崩溃需要打印调用栈），操作系统需要查找这个“索引表”，搞清楚当前运行到哪一行了、上一级函数是谁、局部变量该怎么销毁。</p>
+</li>
+<li>
+<p><strong>OFFSET 00000020</strong></p>
+<p>在 <code>.eh_frame</code> 这个“索引表”内部的第 32 字节（16 进制的 20）位置，有一个空格。</p>
+</li>
+<li>
+<p><strong>VALUE .text</strong></p>
+<p>这个空格里需要填入 <strong><code>.text</code> 段的起始地址</strong>。</p>
+</li>
+<li>
+<p><strong>为什么要填这个？</strong></p>
+<p>因为“索引表”必须知道它负责的是哪一段代码。 在 <code>.o</code> 文件里，<code>.text</code> 段的地址还没定（是逻辑上的 0），所以 <code>.eh_frame</code> 里的这个“索引项”也只能空着。它在等链接器把 <code>.text</code> 放到内存的具体位置后，再回来更新这个索引指针。</p>
+</li>
+</ul>
+<h5 id="把这两部分输出结合起来看">把这两部分输出结合起来看<a href="#把这两部分输出结合起来看" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>.text 里的记录 证明了：你的 main 函数想调用 foo，但目前只有个名字，没有地址。就像你写信填了收件人名字，但没写邮编和地址，邮递员（CPU）没法投递。</p>
+<p>.eh_frame 里的记录 证明了：连辅助程序（用于崩溃处理的信息）都还没和代码对齐。</p>
+<p>现在（.o 文件）：OFFSET e 处填的是 00 00 00 00，重定位表记录着“这里欠一个 foo 的地址”。</p>
+<h5 id="这里的逻辑闭环">这里的逻辑闭环<a href="#这里的逻辑闭环" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>请看这个因果链条：</p>
+<ol>
+<li><strong>代码段（.text）地址不定</strong>：因为它只是个逻辑片段。</li>
+<li><strong>索引表（.eh_frame）失效</strong>：索引表里的指针必须指向代码。既然代码地址没定，索引表里的指针就只能是“虚”的。</li>
+<li><strong>重定位记录产生</strong>：编译器在 <code>.eh_frame</code> 的第 <code>0x20</code> 字节处打个标记，告诉链接器：“等 <code>.text</code> 段的家搬好了，记得把新地址填到我这里，否则我没法建立索引。”</li>
+</ol>
+<h4 id="3-查看最终可执行文件-hello">(3) 查看最终可执行文件 <code>hello</code><a href="#3-查看最终可执行文件-hello" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">objdump -d main.o
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+hello：     文件格式 elf64-x86-64
+
+
+Disassembly of section .init:
+
+<span style="color:#ae81ff">0000000000001000</span> &lt;_init&gt;:
+    1000:	f3 0f 1e fa          	endbr64 
+    1004:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">83</span> ec <span style="color:#ae81ff">08</span>          	sub    $0x8,%rsp
+    1008:	<span style="color:#ae81ff">48</span> 8b <span style="color:#ae81ff">05</span> d9 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	mov    0x2fd9<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rax        <span style="color:#75715e"># 3fe8 &lt;__gmon_start__@Base&gt;</span>
+    100f:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">85</span> c0             	test   %rax,%rax
+    1012:	<span style="color:#ae81ff">74</span> <span style="color:#ae81ff">02</span>                	je     <span style="color:#ae81ff">1016</span> &lt;_init+0x16&gt;
+    1014:	ff d0                	call   *%rax
+    1016:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">83</span> c4 <span style="color:#ae81ff">08</span>          	add    $0x8,%rsp
+    101a:	c3                   	ret    
+
+Disassembly of section .plt:
+
+<span style="color:#ae81ff">0000000000001020</span> &lt;.plt&gt;:
+    1020:	ff <span style="color:#ae81ff">35</span> a2 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>    	push   0x2fa2<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>        <span style="color:#75715e"># 3fc8 &lt;_GLOBAL_OFFSET_TABLE_+0x8&gt;</span>
+    1026:	f2 ff <span style="color:#ae81ff">25</span> a3 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	bnd jmp *0x2fa3<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>        <span style="color:#75715e"># 3fd0 &lt;_GLOBAL_OFFSET_TABLE_+0x10&gt;</span>
+    102d:	0f 1f <span style="color:#ae81ff">00</span>             	nopl   <span style="color:#f92672">(</span>%rax<span style="color:#f92672">)</span>
+
+Disassembly of section .plt.got:
+
+<span style="color:#ae81ff">0000000000001030</span> &lt;__cxa_finalize@plt&gt;:
+    1030:	f3 0f 1e fa          	endbr64 
+    1034:	f2 ff <span style="color:#ae81ff">25</span> bd 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	bnd jmp *0x2fbd<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>        <span style="color:#75715e"># 3ff8 &lt;__cxa_finalize@GLIBC_2.2.5&gt;</span>
+    103b:	0f 1f <span style="color:#ae81ff">44</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>       	nopl   0x0<span style="color:#f92672">(</span>%rax,%rax,1<span style="color:#f92672">)</span>
+
+Disassembly of section .text:
+
+<span style="color:#ae81ff">0000000000001040</span> &lt;_start&gt;:
+    1040:	f3 0f 1e fa          	endbr64 
+    1044:	<span style="color:#ae81ff">31</span> ed                	xor    %ebp,%ebp
+    1046:	<span style="color:#ae81ff">49</span> <span style="color:#ae81ff">89</span> d1             	mov    %rdx,%r9
+    1049:	5e                   	pop    %rsi
+    104a:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> e2             	mov    %rsp,%rdx
+    104d:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">83</span> e4 f0          	and    $0xfffffffffffffff0,%rsp
+    1051:	<span style="color:#ae81ff">50</span>                   	push   %rax
+    1052:	<span style="color:#ae81ff">54</span>                   	push   %rsp
+    1053:	<span style="color:#ae81ff">45</span> <span style="color:#ae81ff">31</span> c0             	xor    %r8d,%r8d
+    1056:	<span style="color:#ae81ff">31</span> c9                	xor    %ecx,%ecx
+    1058:	<span style="color:#ae81ff">48</span> 8d 3d ca <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	lea    0xca<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rdi        <span style="color:#75715e"># 1129 &lt;main&gt;</span>
+    105f:	ff <span style="color:#ae81ff">15</span> <span style="color:#ae81ff">73</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>    	call   *0x2f73<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>        <span style="color:#75715e"># 3fd8 &lt;__libc_start_main@GLIBC_2.34&gt;</span>
+    1065:	f4                   	hlt    
+    1066:	<span style="color:#ae81ff">66</span> 2e 0f 1f <span style="color:#ae81ff">84</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	cs nopw 0x0<span style="color:#f92672">(</span>%rax,%rax,1<span style="color:#f92672">)</span>
+    106d:	<span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 
+
+<span style="color:#ae81ff">0000000000001070</span> &lt;deregister_tm_clones&gt;:
+    1070:	<span style="color:#ae81ff">48</span> 8d 3d <span style="color:#ae81ff">99</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	lea    0x2f99<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rdi        <span style="color:#75715e"># 4010 &lt;__TMC_END__&gt;</span>
+    1077:	<span style="color:#ae81ff">48</span> 8d <span style="color:#ae81ff">05</span> <span style="color:#ae81ff">92</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	lea    0x2f92<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rax        <span style="color:#75715e"># 4010 &lt;__TMC_END__&gt;</span>
+    107e:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">39</span> f8             	cmp    %rdi,%rax
+    1081:	<span style="color:#ae81ff">74</span> <span style="color:#ae81ff">15</span>                	je     <span style="color:#ae81ff">1098</span> &lt;deregister_tm_clones+0x28&gt;
+    1083:	<span style="color:#ae81ff">48</span> 8b <span style="color:#ae81ff">05</span> <span style="color:#ae81ff">56</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	mov    0x2f56<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rax        <span style="color:#75715e"># 3fe0 &lt;_ITM_deregisterTMCloneTable@Base&gt;</span>
+    108a:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">85</span> c0             	test   %rax,%rax
+    108d:	<span style="color:#ae81ff">74</span> <span style="color:#ae81ff">09</span>                	je     <span style="color:#ae81ff">1098</span> &lt;deregister_tm_clones+0x28&gt;
+    108f:	ff e0                	jmp    *%rax
+    1091:	0f 1f <span style="color:#ae81ff">80</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	nopl   0x0<span style="color:#f92672">(</span>%rax<span style="color:#f92672">)</span>
+    1098:	c3                   	ret    
+    1099:	0f 1f <span style="color:#ae81ff">80</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	nopl   0x0<span style="color:#f92672">(</span>%rax<span style="color:#f92672">)</span>
+
+00000000000010a0 &lt;register_tm_clones&gt;:
+    10a0:	<span style="color:#ae81ff">48</span> 8d 3d <span style="color:#ae81ff">69</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	lea    0x2f69<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rdi        <span style="color:#75715e"># 4010 &lt;__TMC_END__&gt;</span>
+    10a7:	<span style="color:#ae81ff">48</span> 8d <span style="color:#ae81ff">35</span> <span style="color:#ae81ff">62</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	lea    0x2f62<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rsi        <span style="color:#75715e"># 4010 &lt;__TMC_END__&gt;</span>
+    10ae:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">29</span> fe             	sub    %rdi,%rsi
+    10b1:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> f0             	mov    %rsi,%rax
+    10b4:	<span style="color:#ae81ff">48</span> c1 ee 3f          	shr    $0x3f,%rsi
+    10b8:	<span style="color:#ae81ff">48</span> c1 f8 <span style="color:#ae81ff">03</span>          	sar    $0x3,%rax
+    10bc:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">01</span> c6             	add    %rax,%rsi
+    10bf:	<span style="color:#ae81ff">48</span> d1 fe             	sar    %rsi
+    10c2:	<span style="color:#ae81ff">74</span> <span style="color:#ae81ff">14</span>                	je     10d8 &lt;register_tm_clones+0x38&gt;
+    10c4:	<span style="color:#ae81ff">48</span> 8b <span style="color:#ae81ff">05</span> <span style="color:#ae81ff">25</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	mov    0x2f25<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rax        <span style="color:#75715e"># 3ff0 &lt;_ITM_registerTMCloneTable@Base&gt;</span>
+    10cb:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">85</span> c0             	test   %rax,%rax
+    10ce:	<span style="color:#ae81ff">74</span> <span style="color:#ae81ff">08</span>                	je     10d8 &lt;register_tm_clones+0x38&gt;
+    10d0:	ff e0                	jmp    *%rax
+    10d2:	<span style="color:#ae81ff">66</span> 0f 1f <span style="color:#ae81ff">44</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>    	nopw   0x0<span style="color:#f92672">(</span>%rax,%rax,1<span style="color:#f92672">)</span>
+    10d8:	c3                   	ret    
+    10d9:	0f 1f <span style="color:#ae81ff">80</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	nopl   0x0<span style="color:#f92672">(</span>%rax<span style="color:#f92672">)</span>
+
+00000000000010e0 &lt;__do_global_dtors_aux&gt;:
+    10e0:	f3 0f 1e fa          	endbr64 
+    10e4:	<span style="color:#ae81ff">80</span> 3d <span style="color:#ae81ff">25</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	cmpb   $0x0,0x2f25<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>        <span style="color:#75715e"># 4010 &lt;__TMC_END__&gt;</span>
+    10eb:	<span style="color:#ae81ff">75</span> 2b                	jne    <span style="color:#ae81ff">1118</span> &lt;__do_global_dtors_aux+0x38&gt;
+    10ed:	<span style="color:#ae81ff">55</span>                   	push   %rbp
+    10ee:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">83</span> 3d <span style="color:#ae81ff">02</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	cmpq   $0x0,0x2f02<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>        <span style="color:#75715e"># 3ff8 &lt;__cxa_finalize@GLIBC_2.2.5&gt;</span>
+    10f5:	<span style="color:#ae81ff">00</span> 
+    10f6:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> e5             	mov    %rsp,%rbp
+    10f9:	<span style="color:#ae81ff">74</span> 0c                	je     <span style="color:#ae81ff">1107</span> &lt;__do_global_dtors_aux+0x27&gt;
+    10fb:	<span style="color:#ae81ff">48</span> 8b 3d <span style="color:#ae81ff">06</span> 2f <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	mov    0x2f06<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>,%rdi        <span style="color:#75715e"># 4008 &lt;__dso_handle&gt;</span>
+    1102:	e8 <span style="color:#ae81ff">29</span> ff ff ff       	call   <span style="color:#ae81ff">1030</span> &lt;__cxa_finalize@plt&gt;
+    1107:	e8 <span style="color:#ae81ff">64</span> ff ff ff       	call   <span style="color:#ae81ff">1070</span> &lt;deregister_tm_clones&gt;
+    110c:	c6 <span style="color:#ae81ff">05</span> fd 2e <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">01</span> 	movb   $0x1,0x2efd<span style="color:#f92672">(</span>%rip<span style="color:#f92672">)</span>        <span style="color:#75715e"># 4010 &lt;__TMC_END__&gt;</span>
+    1113:	5d                   	pop    %rbp
+    1114:	c3                   	ret    
+    1115:	0f 1f <span style="color:#ae81ff">00</span>             	nopl   <span style="color:#f92672">(</span>%rax<span style="color:#f92672">)</span>
+    1118:	c3                   	ret    
+    1119:	0f 1f <span style="color:#ae81ff">80</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 	nopl   0x0<span style="color:#f92672">(</span>%rax<span style="color:#f92672">)</span>
+
+<span style="color:#ae81ff">0000000000001120</span> &lt;frame_dummy&gt;:
+    1120:	f3 0f 1e fa          	endbr64 
+    1124:	e9 <span style="color:#ae81ff">77</span> ff ff ff       	jmp    10a0 &lt;register_tm_clones&gt;
+
+<span style="color:#ae81ff">0000000000001129</span> &lt;main&gt;:
+    1129:	f3 0f 1e fa          	endbr64 
+    112d:	<span style="color:#ae81ff">55</span>                   	push   %rbp
+    112e:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> e5             	mov    %rsp,%rbp
+    1131:	b8 <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>       	mov    $0x0,%eax
+    1136:	e8 <span style="color:#ae81ff">02</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>       	call   113d &lt;foo&gt;
+    113b:	5d                   	pop    %rbp
+    113c:	c3                   	ret    
+
+000000000000113d &lt;foo&gt;:
+    113d:	f3 0f 1e fa          	endbr64 
+    1141:	<span style="color:#ae81ff">55</span>                   	push   %rbp
+    1142:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> e5             	mov    %rsp,%rbp
+    1145:	b8 2a <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>       	mov    $0x2a,%eax
+    114a:	5d                   	pop    %rbp
+    114b:	c3                   	ret    
+
+Disassembly of section .fini:
+
+000000000000114c &lt;_fini&gt;:
+    114c:	f3 0f 1e fa          	endbr64 
+    1150:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">83</span> ec <span style="color:#ae81ff">08</span>          	sub    $0x8,%rsp
+    1154:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">83</span> c4 <span style="color:#ae81ff">08</span>          	add    $0x8,%rsp
+    1158:	c3                   	ret    
+
+</code></pre></div><p>我们主要关心这里：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ae81ff">0000000000001129</span> &lt;main&gt;:
+...
+    1136:	e8 <span style="color:#ae81ff">02</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span>       	call   113d &lt;foo&gt;
+...
+
+000000000000113d &lt;foo&gt;:
+    113d:	f3 0f 1e fa          	endbr64 
+... 
+
+</code></pre></div><p>原本的 <code>00 00 00 00</code> 已经被链接器修改为了 <code>02 00 00 00</code>（这是相对于当前 PC 指针的偏移量）。此时，指令已精准指向了 <code>113d</code> 处的 <code>foo</code> 函数。</p>
+<h4 id="总结-2">总结<a href="#总结-2" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<ul>
+<li><strong>编译器（Compiler）</strong>：负责发现“未定义的引用”并生成重定位表。</li>
+<li><strong>链接器（Linker）</strong>：负责查阅重定位表，计算真实地址，并执行**“按址抹写”**。</li>
+</ul>
+<p>这就是为什么 <code>.o</code> 文件必须经过链接才能运行：没有链接器的修补，程序内部的函数调用和全局变量访问都会指向错误的地址（通常是 0 地址），导致程序崩溃。</p>
+<h2 id="第三部分从-section-到-segment">第三部分：从 Section 到 Segment<a href="#第三部分从-section-到-segment" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>在上文中，我们拆解了 .o 文件的内部构造。我们看到了 .text、.data、.bss 这些散落在各处的 Section（节），它们是编译器为了方便管理代码和数据而划分的区块。</p>
+<p>然而，当我们把多个 .o 文件交给链接器，生成最终的可执行文件时，一个新的问题出现了：操作系统（或加载器）在运行程序时，并不关心你的代码来自哪个 .o 文件，也不关心你细碎的符号表。它只关心最本质的物理需求——这块内存能不能写？那块内存能不能运行？</p>
+<p>于是，为了满足“运行”的效率，ELF 文件演化出了第二套视角。这就是我们接下来要讨论的从 Section（链接视角） 到 Segment（运行视角） 。</p>
+<p><strong>在最终的 ELF 可执行文件中，Section Header Table（节表）和 Program Header Table（段表/Segment 表）通常是同时存在的。</strong></p>
+<ul>
+<li><strong>Segment Table (段表/Program Header Table)</strong>：
+<ul>
+<li><strong>它是给操作系统（Loader）看的。</strong></li>
+<li>操作系统运行程序时，根本不关心你的函数名叫什么，它只看 Segment。它会说：“把这一块 40KB 的数据搬到内存地址 $0x400000$，并给它‘只读+执行’权限。”</li>
+<li><strong>没有它，程序无法加载运行。</strong></li>
+</ul>
+</li>
+<li><strong>Section Table (节表/Section Header Table)</strong>：
+<ul>
+<li><strong>它是给调试器（GDB）或反汇编工具（objdump）看的。</strong></li>
+<li>虽然程序能跑了，但如果你想调试，调试器需要知道：<code>main</code> 函数在哪个位置？全局变量 <code>my_var</code> 在哪？</li>
+<li>这些信息依然存在于 Section 表中。</li>
+<li><strong>理论上，删掉（strip）Section 表，程序依然能跑，但你就没法调试它了。</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="section-是链接器的世界">Section 是“链接器的世界”<a href="#section-是链接器的世界" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>Section 是一种<strong>逻辑划分单位</strong>，它存在的目的是：</p>
+<ul>
+<li>组织代码与数据</li>
+<li>便于符号解析</li>
+<li>便于重定位</li>
+<li>便于调试</li>
+</ul>
+<p>举例：</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.text</code></td>
+<td>存放指令</td>
+</tr>
+<tr>
+<td><code>.rodata</code></td>
+<td>存放只读数据</td>
+</tr>
+<tr>
+<td><code>.data</code></td>
+<td>已初始化可写数据</td>
+</tr>
+<tr>
+<td><code>.bss</code></td>
+<td>未初始化数据</td>
+</tr>
+<tr>
+<td><code>.symtab</code></td>
+<td>符号表</td>
+</tr>
+<tr>
+<td><code>.rel.*</code></td>
+<td>重定位表</td>
+</tr>
+</tbody>
+</table>
+<p>这些结构都是为：</p>
+<blockquote>
+<p>链接阶段服务</p>
+</blockquote>
+<p>当你运行：</p>
+<pre tabindex="0"><code>readelf -S hello
+</code></pre><p>你看到的就是 Section Header Table。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">There are <span style="color:#ae81ff">29</span> section headers, starting at offset 0x3698:
+
+节头：
+  <span style="color:#f92672">[</span>号<span style="color:#f92672">]</span> 名称              类型             地址              偏移量
+       大小              全体大小          旗标   链接   信息   对齐
+  <span style="color:#f92672">[</span> 0<span style="color:#f92672">]</span>                   NULL             <span style="color:#ae81ff">0000000000000000</span>  <span style="color:#ae81ff">00000000</span>
+       <span style="color:#ae81ff">0000000000000000</span>  <span style="color:#ae81ff">0000000000000000</span>           <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>
+  <span style="color:#f92672">[</span> 1<span style="color:#f92672">]</span> .interp           PROGBITS         <span style="color:#ae81ff">0000000000000318</span>  <span style="color:#ae81ff">00000318</span>
+       000000000000001c  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">1</span>
+  <span style="color:#f92672">[</span> 2<span style="color:#f92672">]</span> .note.gnu.pr<span style="color:#f92672">[</span>...<span style="color:#f92672">]</span> NOTE             <span style="color:#ae81ff">0000000000000338</span>  <span style="color:#ae81ff">00000338</span>
+       <span style="color:#ae81ff">0000000000000030</span>  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span> 3<span style="color:#f92672">]</span> .note.gnu.bu<span style="color:#f92672">[</span>...<span style="color:#f92672">]</span> NOTE             <span style="color:#ae81ff">0000000000000368</span>  <span style="color:#ae81ff">00000368</span>
+       <span style="color:#ae81ff">0000000000000024</span>  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">4</span>
+  <span style="color:#f92672">[</span> 4<span style="color:#f92672">]</span> .note.ABI-tag     NOTE             000000000000038c  0000038c
+       <span style="color:#ae81ff">0000000000000020</span>  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">4</span>
+  <span style="color:#f92672">[</span> 5<span style="color:#f92672">]</span> .gnu.hash         GNU_HASH         00000000000003b0  000003b0
+       <span style="color:#ae81ff">0000000000000024</span>  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">6</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span> 6<span style="color:#f92672">]</span> .dynsym           DYNSYM           00000000000003d8  000003d8
+       <span style="color:#ae81ff">0000000000000090</span>  <span style="color:#ae81ff">0000000000000018</span>   A       <span style="color:#ae81ff">7</span>     <span style="color:#ae81ff">1</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span> 7<span style="color:#f92672">]</span> .dynstr           STRTAB           <span style="color:#ae81ff">0000000000000468</span>  <span style="color:#ae81ff">00000468</span>
+       <span style="color:#ae81ff">0000000000000088</span>  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">1</span>
+  <span style="color:#f92672">[</span> 8<span style="color:#f92672">]</span> .gnu.version      VERSYM           00000000000004f0  000004f0
+       000000000000000c  <span style="color:#ae81ff">0000000000000002</span>   A       <span style="color:#ae81ff">6</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">2</span>
+  <span style="color:#f92672">[</span> 9<span style="color:#f92672">]</span> .gnu.version_r    VERNEED          <span style="color:#ae81ff">0000000000000500</span>  <span style="color:#ae81ff">00000500</span>
+       <span style="color:#ae81ff">0000000000000030</span>  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">7</span>     <span style="color:#ae81ff">1</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>10<span style="color:#f92672">]</span> .rela.dyn         RELA             <span style="color:#ae81ff">0000000000000530</span>  <span style="color:#ae81ff">00000530</span>
+       00000000000000c0  <span style="color:#ae81ff">0000000000000018</span>   A       <span style="color:#ae81ff">6</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>11<span style="color:#f92672">]</span> .init             PROGBITS         <span style="color:#ae81ff">0000000000001000</span>  <span style="color:#ae81ff">00001000</span>
+       000000000000001b  <span style="color:#ae81ff">0000000000000000</span>  AX       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">4</span>
+  <span style="color:#f92672">[</span>12<span style="color:#f92672">]</span> .plt              PROGBITS         <span style="color:#ae81ff">0000000000001020</span>  <span style="color:#ae81ff">00001020</span>
+       <span style="color:#ae81ff">0000000000000010</span>  <span style="color:#ae81ff">0000000000000010</span>  AX       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">16</span>
+  <span style="color:#f92672">[</span>13<span style="color:#f92672">]</span> .plt.got          PROGBITS         <span style="color:#ae81ff">0000000000001030</span>  <span style="color:#ae81ff">00001030</span>
+       <span style="color:#ae81ff">0000000000000010</span>  <span style="color:#ae81ff">0000000000000010</span>  AX       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">16</span>
+  <span style="color:#f92672">[</span>14<span style="color:#f92672">]</span> .text             PROGBITS         <span style="color:#ae81ff">0000000000001040</span>  <span style="color:#ae81ff">00001040</span>
+       000000000000010c  <span style="color:#ae81ff">0000000000000000</span>  AX       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">16</span>
+  <span style="color:#f92672">[</span>15<span style="color:#f92672">]</span> .fini             PROGBITS         000000000000114c  0000114c
+       000000000000000d  <span style="color:#ae81ff">0000000000000000</span>  AX       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">4</span>
+  <span style="color:#f92672">[</span>16<span style="color:#f92672">]</span> .rodata           PROGBITS         <span style="color:#ae81ff">0000000000002000</span>  <span style="color:#ae81ff">00002000</span>
+       <span style="color:#ae81ff">0000000000000004</span>  <span style="color:#ae81ff">0000000000000004</span>  AM       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">4</span>
+  <span style="color:#f92672">[</span>17<span style="color:#f92672">]</span> .eh_frame_hdr     PROGBITS         <span style="color:#ae81ff">0000000000002004</span>  <span style="color:#ae81ff">00002004</span>
+       <span style="color:#ae81ff">0000000000000034</span>  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">4</span>
+  <span style="color:#f92672">[</span>18<span style="color:#f92672">]</span> .eh_frame         PROGBITS         <span style="color:#ae81ff">0000000000002038</span>  <span style="color:#ae81ff">00002038</span>
+       00000000000000b4  <span style="color:#ae81ff">0000000000000000</span>   A       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>19<span style="color:#f92672">]</span> .init_array       INIT_ARRAY       0000000000003df0  00002df0
+       <span style="color:#ae81ff">0000000000000008</span>  <span style="color:#ae81ff">0000000000000008</span>  WA       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>20<span style="color:#f92672">]</span> .fini_array       FINI_ARRAY       0000000000003df8  00002df8
+       <span style="color:#ae81ff">0000000000000008</span>  <span style="color:#ae81ff">0000000000000008</span>  WA       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>21<span style="color:#f92672">]</span> .dynamic          DYNAMIC          0000000000003e00  00002e00
+       00000000000001c0  <span style="color:#ae81ff">0000000000000010</span>  WA       <span style="color:#ae81ff">7</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>22<span style="color:#f92672">]</span> .got              PROGBITS         0000000000003fc0  00002fc0
+       <span style="color:#ae81ff">0000000000000040</span>  <span style="color:#ae81ff">0000000000000008</span>  WA       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>23<span style="color:#f92672">]</span> .data             PROGBITS         <span style="color:#ae81ff">0000000000004000</span>  <span style="color:#ae81ff">00003000</span>
+       <span style="color:#ae81ff">0000000000000010</span>  <span style="color:#ae81ff">0000000000000000</span>  WA       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>24<span style="color:#f92672">]</span> .bss              NOBITS           <span style="color:#ae81ff">0000000000004010</span>  <span style="color:#ae81ff">00003010</span>
+       <span style="color:#ae81ff">0000000000000008</span>  <span style="color:#ae81ff">0000000000000000</span>  WA       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">1</span>
+  <span style="color:#f92672">[</span>25<span style="color:#f92672">]</span> .comment          PROGBITS         <span style="color:#ae81ff">0000000000000000</span>  <span style="color:#ae81ff">00003010</span>
+       000000000000002d  <span style="color:#ae81ff">0000000000000001</span>  MS       <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">1</span>
+  <span style="color:#f92672">[</span>26<span style="color:#f92672">]</span> .symtab           SYMTAB           <span style="color:#ae81ff">0000000000000000</span>  <span style="color:#ae81ff">00003040</span>
+       <span style="color:#ae81ff">0000000000000378</span>  <span style="color:#ae81ff">0000000000000018</span>          <span style="color:#ae81ff">27</span>    <span style="color:#ae81ff">19</span>     <span style="color:#ae81ff">8</span>
+  <span style="color:#f92672">[</span>27<span style="color:#f92672">]</span> .strtab           STRTAB           <span style="color:#ae81ff">0000000000000000</span>  000033b8
+       00000000000001d3  <span style="color:#ae81ff">0000000000000000</span>           <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">1</span>
+  <span style="color:#f92672">[</span>28<span style="color:#f92672">]</span> .shstrtab         STRTAB           <span style="color:#ae81ff">0000000000000000</span>  0000358b
+       000000000000010c  <span style="color:#ae81ff">0000000000000000</span>           <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">1</span>
+Key to Flags:
+  W <span style="color:#f92672">(</span>write<span style="color:#f92672">)</span>, A <span style="color:#f92672">(</span>alloc<span style="color:#f92672">)</span>, X <span style="color:#f92672">(</span>execute<span style="color:#f92672">)</span>, M <span style="color:#f92672">(</span>merge<span style="color:#f92672">)</span>, S <span style="color:#f92672">(</span>strings<span style="color:#f92672">)</span>, I <span style="color:#f92672">(</span>info<span style="color:#f92672">)</span>,
+  L <span style="color:#f92672">(</span>link order<span style="color:#f92672">)</span>, O <span style="color:#f92672">(</span>extra OS processing required<span style="color:#f92672">)</span>, G <span style="color:#f92672">(</span>group<span style="color:#f92672">)</span>, T <span style="color:#f92672">(</span>TLS<span style="color:#f92672">)</span>,
+  C <span style="color:#f92672">(</span>compressed<span style="color:#f92672">)</span>, x <span style="color:#f92672">(</span>unknown<span style="color:#f92672">)</span>, o <span style="color:#f92672">(</span>OS specific<span style="color:#f92672">)</span>, E <span style="color:#f92672">(</span>exclude<span style="color:#f92672">)</span>,
+  D <span style="color:#f92672">(</span>mbind<span style="color:#f92672">)</span>, l <span style="color:#f92672">(</span>large<span style="color:#f92672">)</span>, p <span style="color:#f92672">(</span>processor specific<span style="color:#f92672">)</span>
+
+</code></pre></div><p>但请注意一个关键事实：</p>
+<p><strong>Section Header Table 在程序运行时根本不会被加载。</strong></p>
+<h3 id="segment-是加载器的世界">Segment 是“加载器的世界”<a href="#segment-是加载器的世界" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>真正影响程序执行的，是 <strong>Program Header Table</strong>。</p>
+<p>运行：</p>
+<pre tabindex="0"><code>readelf -l hello
+</code></pre><p>你会看到类似输出：</p>
+<pre tabindex="0"><code>
+Elf 文件类型为 DYN (Position-Independent Executable file)
+Entry point 0x1040
+There are 13 program headers, starting at offset 64
+
+程序头：
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  PHDR           0x0000000000000040 0x0000000000000040 0x0000000000000040
+                 0x00000000000002d8 0x00000000000002d8  R      0x8
+  INTERP         0x0000000000000318 0x0000000000000318 0x0000000000000318
+                 0x000000000000001c 0x000000000000001c  R      0x1
+      [Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]
+  LOAD           0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x00000000000005f0 0x00000000000005f0  R      0x1000
+  LOAD           0x0000000000001000 0x0000000000001000 0x0000000000001000
+                 0x0000000000000159 0x0000000000000159  R E    0x1000
+  LOAD           0x0000000000002000 0x0000000000002000 0x0000000000002000
+                 0x00000000000000ec 0x00000000000000ec  R      0x1000
+  LOAD           0x0000000000002df0 0x0000000000003df0 0x0000000000003df0
+                 0x0000000000000220 0x0000000000000228  RW     0x1000
+  DYNAMIC        0x0000000000002e00 0x0000000000003e00 0x0000000000003e00
+                 0x00000000000001c0 0x00000000000001c0  RW     0x8
+  NOTE           0x0000000000000338 0x0000000000000338 0x0000000000000338
+                 0x0000000000000030 0x0000000000000030  R      0x8
+  NOTE           0x0000000000000368 0x0000000000000368 0x0000000000000368
+                 0x0000000000000044 0x0000000000000044  R      0x4
+  GNU_PROPERTY   0x0000000000000338 0x0000000000000338 0x0000000000000338
+                 0x0000000000000030 0x0000000000000030  R      0x8
+  GNU_EH_FRAME   0x0000000000002004 0x0000000000002004 0x0000000000002004
+                 0x0000000000000034 0x0000000000000034  R      0x4
+  GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000000000 0x0000000000000000  RW     0x10
+  GNU_RELRO      0x0000000000002df0 0x0000000000003df0 0x0000000000003df0
+                 0x0000000000000210 0x0000000000000210  R      0x1
+
+ Section to Segment mapping:
+  段节...
+   00     
+   01     .interp 
+   02     .interp .note.gnu.property .note.gnu.build-id .note.ABI-tag .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn 
+   03     .init .plt .plt.got .text .fini 
+   04     .rodata .eh_frame_hdr .eh_frame 
+   05     .init_array .fini_array .dynamic .got .data .bss 
+   06     .dynamic 
+   07     .note.gnu.property 
+   08     .note.gnu.build-id .note.ABI-tag 
+   09     .note.gnu.property 
+   10     .eh_frame_hdr 
+   11     
+   12     .init_array .fini_array .dynamic .got 
+
+</code></pre><p>这里出现的 <code>LOAD</code> 项，就是 <strong>Segment</strong>。</p>
+<h4 id="操作系统加载程序时只做三件事">操作系统加载程序时，只做三件事：<a href="#操作系统加载程序时只做三件事" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<ul>
+<li>
+<p><strong>第一步：遍历 Program Header Table (PHT)</strong></p>
+<p>操作系统打开 ELF 文件后，首先读取文件头，定位到 PHT。</p>
+<p>操作系统把 ELF 当成一张“内存置放地图”。PHT 里的每一个条目（Entry）都在说：“我这有一块数据，请帮我安置好。”</p>
+<p>此时，.text、.rodata、.hash 等几十个 Section 已经被链接器“打包”进了几个大的 Segment 里。OS 并不关心里面装的是代码还是常量，它只关心这块二进制的大小。</p>
+</li>
+<li>
+<p><strong>第二步：找到所有 LOAD</strong></p>
+<p>PHT 里有很多类型的段（比如 PT_INTERP 指向动态链接器），但操作系统最关心的是 LOAD。只有类型为 LOAD 的段才需要被搬进内存。核心参数： 每个 LOAD 段携带了关键的四个参数：</p>
+<p>**File Offset：**这块数据在硬盘文件的哪个位置？</p>
+<p>**Virtual Address ：**这块数据要放在虚拟内存的哪个地址？</p>
+<p>**File Size / Mem Size：**要搬多少字节？（如果 Mem Size &gt; File Size，多出来的部分就是 .bss，OS 直接刷成零）。</p>
+<p>**Flags (权限)：**R (读), W (写), X (执行)。</p>
+</li>
+<li>
+<p><strong>第三步：按页映射（Memory Mapping）</strong></p>
+<p>这是最关键的性能优化步骤。操作系统并不会真的把文件内容立刻“拷贝”到内存里，而是通过 mmap 系统调用做“映射”。</p>
+<p>对齐分页（Alignment）：由于 CPU 的内存管理单元（MMU）是以“页”（通常是 4KB）为单位工作的，所以每个 PT_LOAD 段的起始地址和长度通常都会对齐到 4096 字节。</p>
+<p>建立映射关系：OS 只是在进程的页表（Page Table）里画了个押：“从虚拟地址A到B的这块区域，对应硬盘文件F的偏移量O。”</p>
+<p>按需加载（Page Fault）：当你真正开始运行第一行指令时，CPU 发现内存里还没数据，触发一个“缺页异常”。此时，OS 才慢吞吞地从硬盘把那一页数据读进物理内存。</p>
+</li>
+</ul>
+<h4 id="为什么它不关心-text-或-data">为什么它不关心 .text 或 .data？<a href="#为什么它不关心-text-或-data" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这就是权限驱动的设计哲学。</p>
+<p><strong>合并同类项：</strong>
+在 .o 文件里，.text 是执行权限，.rodata 是只读权限。链接器发现它们都“不需要写”，于是把它们合并成一个 LOAD 段，权限设为 R-E。</p>
+<p><strong>安全性与效率：</strong>
+操作系统只需要知道：</p>
+<p>这段能跑吗？（执行权限）</p>
+<p>这段能改吗？（写入权限）</p>
+<p>如果 OS 去关心几百个细小的 Section，内存管理会变得极其碎裂且低效。</p>
+<h3 id="section-如何变成-segment">Section 如何变成 Segment？<a href="#section-如何变成-segment" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>这是<strong>链接器</strong>的工作。</p>
+<p>我们可以抽象成一句话：</p>
+<blockquote>
+<p>多个 Section 会被合并成一个 Segment。</p>
+</blockquote>
+<p>据个例子，典型映射关系如下：</p>
+<pre tabindex="0"><code>.text
+.rodata
+   ↓
+合并成一个 RX Segment
+
+.data
+.bss
+   ↓
+合并成一个 RW Segment
+</code></pre><p>也就是说：</p>
+<table>
+<thead>
+<tr>
+<th>Segment</th>
+<th>包含 Section</th>
+<th>权限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一个 LOAD</td>
+<td>.text + .rodata</td>
+<td>R-X</td>
+</tr>
+<tr>
+<td>第二个 LOAD</td>
+<td>.data + .bss</td>
+<td>RW-</td>
+</tr>
+</tbody>
+</table>
+<p>这是因为：</p>
+<ul>
+<li><code>.text</code> 和 <code>.rodata</code> 都是只读</li>
+<li><code>.data</code> 和 <code>.bss</code> 都是可写</li>
+</ul>
+<p>而现代操作系统以“页”为单位管理权限。它实现了硬件级别的访问隔离，能以极低成本让 CPU 瞬间拦截任何非法指令（如修改代码或执行数据），从而保障系统的稳定与安全。</p>
+<h3 id="为什么必须有两套结构">为什么必须有两套结构？<a href="#为什么必须有两套结构" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>这是计算机体系结构设计的精妙之处。之所以在同一个 ELF 文件中既有 <strong>Section</strong> 又有 <strong>Segment</strong>，是因为它们分别服务于程序生命周期中两个完全不同的阶段：</p>
+<h4 id="1-section-视角解决如何构建程序链接阶段">1. Section 视角：解决“如何构建程序”（链接阶段）<a href="#1-section-视角解决如何构建程序链接阶段" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>Section 是<strong>逻辑组织单位</strong>。 在链接时，链接器并不关心内存权限，它需要的是对代码和数据进行精确的分类与合并。</p>
+<ul>
+<li><strong>核心任务</strong>：
+<ul>
+<li><strong>符号解析</strong>：通过 <code>.symtab</code> 查找函数定义。</li>
+<li><strong>重定位</strong>：通过 <code>.rel.text</code> 修正指令中的地址。</li>
+<li><strong>排布对齐</strong>：根据各节定义的对齐要求（Align）在文件中排列数据。</li>
+</ul>
+</li>
+<li><strong>性质</strong>：它是<strong>编译/链接视图（Linking View）</strong>，是给链接器看的。</li>
+</ul>
+<h4 id="2-segment-视角解决如何运行程序加载阶段">2. Segment 视角：解决“如何运行程序”（加载阶段）<a href="#2-segment-视角解决如何运行程序加载阶段" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>Segment 是<strong>物理映射单位</strong>。 在程序运行时，操作系统（或加载器）并不关心代码来自哪个具体的函数，它只关心硬件级的内存属性。</p>
+<ul>
+<li><strong>核心任务</strong>：
+<ul>
+<li><strong>映射虚拟地址</strong>：将文件内容一次性加载到指定的虚拟地址空间。</li>
+<li><strong>设置页权限</strong>：通过 MMU 设置内存页的只读（R）、读写（RW）或执行（X）权限。</li>
+<li><strong>资源整合</strong>：将几十个零碎的 Section 按权限合并为两三个大的 Segment，以减少内存页浪费（页对齐造成的空间碎片）。</li>
+</ul>
+</li>
+<li><strong>性质</strong>：它是<strong>执行视图（Execution View）</strong>，是给操作系统和硬件看的。</li>
+</ul>
+<h4 id="3-结论语义与物理的解耦">3. 结论：语义与物理的解耦<a href="#3-结论语义与物理的解耦" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<ul>
+<li><strong>Section 是语义结构</strong>：它代表了代码和数据的“逻辑属性”（如：这是已初始化的数据，那是重定位信息）。</li>
+<li><strong>Segment 是物理映射结构</strong>：它代表了代码和数据的“硬件属性”（如：这 4KB 内存必须设为只读且可执行）。</li>
+</ul>
+<p><strong>总结：</strong> 如果只有 Section，加载程序时会产生大量的碎片化内存映射，严重影响性能；如果只有 Segment，链接器将失去精确控制代码合并与地址修正的能力。两套结构的并存，实现了<strong>开发阶段的灵活性</strong>与<strong>运行阶段的高效性</strong>之间的平衡。</p>
+<h3 id="硬件视角下的-segment-加载与执行">硬件视角下的 Segment 加载与执行<a href="#硬件视角下的-segment-加载与执行" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>当操作系统加载程序时：</p>
+<ol>
+<li>为每个 LOAD 创建虚拟内存区域</li>
+<li>分配页表</li>
+<li>设置页权限（R/W/X）</li>
+<li>将文件内容映射到页</li>
+</ol>
+<p>CPU 执行时发生的事情：</p>
+<pre tabindex="0"><code>PC → 虚拟地址
+  ↓
+MMU 查页表
+  ↓
+物理地址
+  ↓
+取指
+</code></pre><p>CPU 并不知道：</p>
+<ul>
+<li>哪些字节来自 <code>.text</code></li>
+<li>哪些来自 <code>.rodata</code></li>
+</ul>
+<p>它只知道：</p>
+<blockquote>
+<p>当前页是否可执行</p>
+</blockquote>
+<h3 id="一个重要现象bss-不存在于文件中">一个重要现象：.bss 不存在于文件中<a href="#一个重要现象bss-不存在于文件中" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在 Program Header 中你会看到：</p>
+<pre tabindex="0"><code>FileSiz &lt; MemSiz
+</code></pre><p>这意味着：</p>
+<ul>
+<li>文件里没有 <code>.bss</code> 的内容</li>
+<li>但运行时会分配空间</li>
+</ul>
+<p>加载器会：</p>
+<ul>
+<li>分配额外内存</li>
+<li>自动清零</li>
+</ul>
+<p>它在文件中没有实体，但在 Segment 中有空间。</p>
+<h3 id="从体系结构角度的真正结论">从体系结构角度的真正结论<a href="#从体系结构角度的真正结论" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>现在我们可以总结：</p>
+<h5 id="elf-同时服务于两个阶段">ELF 同时服务于两个阶段<a href="#elf-同时服务于两个阶段" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>结构</th>
+<th>关注点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>链接阶段</td>
+<td>Section</td>
+<td>逻辑组织</td>
+</tr>
+<tr>
+<td>加载阶段</td>
+<td>Segment</td>
+<td>地址映射</td>
+</tr>
+</tbody>
+</table>
+<p>而 CPU 只认：</p>
+<blockquote>
+<p>虚拟地址 + 页权限</p>
+</blockquote>
+<h2 id="第四部分从-elf-到-bin回归物理真实">第四部分：从 ELF 到 bin：回归物理真实<a href="#第四部分从-elf-到-bin回归物理真实" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="为什么需要从-elf-转换为-bin">为什么需要从 ELF 转换为 bin？<a href="#为什么需要从-elf-转换为-bin" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li><strong>ELF 的冗余性</strong>：ELF 文件包含大量调试信息（Debug Info）、符号表（Symbol Table）和节头表（Section Header Table）。这些信息对链接器和操作系统有用，但对于裸机硬件（如 Flash 存储器）来说是多余的。</li>
+<li><strong>硬件的直接性</strong>：嵌入式 CPU 上电后，通常从固定物理地址读取原始机器码，它无法解析 ELF 复杂的段结构。</li>
+</ul>
+<h3 id="转换的本质提取-load-段">转换的本质：提取 LOAD 段<a href="#转换的本质提取-load-段" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>使用 <code>objcopy</code> 工具（如 <code>arm-none-eabi-objcopy</code>）执行转换：</p>
+<ul>
+<li><strong>动作</strong>：丢弃所有非 <code>LOAD</code> 类型的 Segment。</li>
+<li><strong>动作</strong>：丢弃所有 Section Header 和 Program Header。</li>
+<li><strong>结果</strong>：只保留 <code>PT_LOAD</code> 段中的原始数据，并按照其在物理内存中的相对位置进行排列。</li>
+</ul>
+<h3 id="关键差异对比">关键差异对比<a href="#关键差异对比" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong>ELF 文件</strong></th>
+<th><strong>Bin 文件</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>内容</strong></td>
+<td>代码+数据+元数据（符号、索引）</td>
+<td>纯粹的代码和数据镜像</td>
+</tr>
+<tr>
+<td><strong>结构</strong></td>
+<td>结构化存储，支持重定位和动态解析</td>
+<td>扁平化的二进制流，与物理地址一一对应</td>
+</tr>
+<tr>
+<td><strong>大小</strong></td>
+<td>较大（包含大量辅助信息）</td>
+<td>较小（仅包含运行所需的有效载荷）</td>
+</tr>
+<tr>
+<td><strong>用途</strong></td>
+<td>调试、链接、操作系统加载</td>
+<td>直接烧录到 Flash 运行</td>
+</tr>
+</tbody>
+</table>
+<h3 id="转换后的物理布局">转换后的物理布局<a href="#转换后的物理布局" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在 <code>.bin</code> 文件中，原本分散在 ELF 不同位置的 <code>LOAD</code> 段会被拼接在一起。若两个段之间在物理地址上不连续，<code>objcopy</code> 通常会用 <code>0x00</code> 或 <code>0xFF</code> 填充这些空隙，以保持物理地址的线性关系。</p>
+<h2 id="总结-3">总结<a href="#总结-3" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>现在，我们手中已经拥有了一份完美的二进制镜像，但它目前还静静地躺在 Flash 硬盘中。</p>
+<p>在下一篇中，我们将进入**“运行时环境”**的篇章：</p>
+<ul>
+<li>程序上电的那一刻，硬件是如何从 Flash 中找到第一条指令的？</li>
+<li>**栈（Stack）<strong>和</strong>堆（Heap）**这两个动态空间是如何从无到有建立起来的？</li>
+<li>为什么 C 程序员必须深刻理解局部变量与全局变量在内存中的物理差异？</li>
+</ul>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title> :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ESP32 websocket 启动webserver 创建http服务监听端口
+初始化一些全局变量
+start_webserver(void){ httpd_handle_t server = NULL; httpd_config_t config = HTTPD_DEFAULT_CONFIG(); httpd_start(&amp;amp;server, &amp;amp;config); static const httpd_uri_t ws = { .uri = &amp;#34;/ws&amp;#34;, .method = HTTP_GET, .handler = handler, .user_ctx = NULL, .is_websocket = true}; httpd_register_uri_handler(server, &amp;amp;ws); //httpd_register_uri_handler 注册 URL  // 初始化广播所需的全局状态  //把这个server给全局变量  s_server_handle = server; if (!s_ws_lock) { //!s_ws_lock判断锁有没有被创建  s_ws_lock = xSemaphoreCreateMutex(); } for (int i = 0; i &amp;lt; WS_MAX_CLIENTS; &#43;&#43;i) { s_client_fds[i] = -1; } ESP_LOGI(TAG, &amp;#34;WebSocket server ready&amp;#34;); return server; } handler函数 然后我访问的时候就会进入到handler函数" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="https://luzekka.github.io/posts/esp32-websocket/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/syntax.min.a0773cce9310cb6d8ed23e50f005448facf29a53001b57e038828daa466b25c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="https://luzekka.github.io/favicon.png">
+<link rel="apple-touch-icon" href="https://luzekka.github.io/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="">
+<meta property="og:description" content="ESP32 websocket 启动webserver 创建http服务监听端口
+初始化一些全局变量
+start_webserver(void){ httpd_handle_t server = NULL; httpd_config_t config = HTTPD_DEFAULT_CONFIG(); httpd_start(&amp;amp;server, &amp;amp;config); static const httpd_uri_t ws = { .uri = &amp;#34;/ws&amp;#34;, .method = HTTP_GET, .handler = handler, .user_ctx = NULL, .is_websocket = true}; httpd_register_uri_handler(server, &amp;amp;ws); //httpd_register_uri_handler 注册 URL  // 初始化广播所需的全局状态  //把这个server给全局变量  s_server_handle = server; if (!s_ws_lock) { //!s_ws_lock判断锁有没有被创建  s_ws_lock = xSemaphoreCreateMutex(); } for (int i = 0; i &amp;lt; WS_MAX_CLIENTS; &#43;&#43;i) { s_client_fds[i] = -1; } ESP_LOGI(TAG, &amp;#34;WebSocket server ready&amp;#34;); return server; } handler函数 然后我访问的时候就会进入到handler函数" />
+<meta property="og:url" content="https://luzekka.github.io/posts/esp32-websocket/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="https://luzekka.github.io/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://luzekka.github.io/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://luzekka.github.io/posts/esp32-websocket/"></a>
+  </h1>
+  <div class="post-meta"></div>
+
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="esp32-websocket">ESP32 websocket<a href="#esp32-websocket" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<h2 id="启动webserver">启动webserver<a href="#启动webserver" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>创建http服务监听端口</p>
+<p>初始化一些全局变量</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">start_webserver(<span style="color:#66d9ef">void</span>){
+
+    httpd_handle_t server <span style="color:#f92672">=</span> NULL;
+    httpd_config_t config <span style="color:#f92672">=</span> HTTPD_DEFAULT_CONFIG();
+    httpd_start(<span style="color:#f92672">&amp;</span>server, <span style="color:#f92672">&amp;</span>config);
+
+    <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> httpd_uri_t ws <span style="color:#f92672">=</span> {
+        .uri <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/ws&#34;</span>,
+        .method <span style="color:#f92672">=</span> HTTP_GET,
+        .handler <span style="color:#f92672">=</span> handler,
+        .user_ctx <span style="color:#f92672">=</span> NULL,
+        .is_websocket <span style="color:#f92672">=</span> true};
+
+    httpd_register_uri_handler(server, <span style="color:#f92672">&amp;</span>ws);
+    <span style="color:#75715e">//httpd_register_uri_handler 注册 URL
+</span><span style="color:#75715e"></span>    
+    <span style="color:#75715e">// 初始化广播所需的全局状态
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//把这个server给全局变量
+</span><span style="color:#75715e"></span>    s_server_handle <span style="color:#f92672">=</span> server;
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>s_ws_lock)
+    {
+        <span style="color:#75715e">//!s_ws_lock判断锁有没有被创建
+</span><span style="color:#75715e"></span>        s_ws_lock <span style="color:#f92672">=</span> xSemaphoreCreateMutex();
+    }
+    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> WS_MAX_CLIENTS; <span style="color:#f92672">++</span>i)
+    {
+        s_client_fds[i] <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+    }
+    ESP_LOGI(TAG, <span style="color:#e6db74">&#34;WebSocket server ready&#34;</span>);
+    <span style="color:#66d9ef">return</span> server;
+}
+</code></pre></div><h2 id="handler函数">handler函数<a href="#handler函数" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>然后我访问的时候就会进入到handler函数</p>
+<p>​	fd是底层 TCP 连接的整数句柄。类型是 int，&gt;0 表示有效，断开后会被系统关闭，值可能以后复用。数字本身没业务含义，只是底层 socket 句柄（文件描述符）。句柄(Handle)：一种间接引用资源的整数或指针，自己没有实际数据，只用来让系统在内部找到对应资源。在 ESP-IDF / lwIP 中，TCP 连接创建后分配一个文件描述符 fd（&gt;0）。你保存 fd，就能用 httpd_ws_send_frame_async(server_handle, fd, …) 等函数定位并向该连接发送数据。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> esp_err_t <span style="color:#a6e22e">handler</span>(httpd_req_t <span style="color:#f92672">*</span>req)
+{
+    <span style="color:#75715e">//第一次访问时的运行
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (req<span style="color:#f92672">-&gt;</span>method <span style="color:#f92672">==</span> HTTP_GET)
+    {
+        <span style="color:#75715e">//fd是底层 TCP 连接的整数句柄
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> fd <span style="color:#f92672">=</span> httpd_req_to_sockfd(req);
+        ws_client_add(fd); <span style="color:#75715e">// 记录客户端
+</span><span style="color:#75715e"></span>        ESP_LOGI(TAG, <span style="color:#e6db74">&#34;Handshake done, fd=%d&#34;</span>, fd);
+        ws_broadcast(<span style="color:#e6db74">&#34;client %d joined&#34;</span>, fd);
+        <span style="color:#66d9ef">return</span> ESP_OK;
+    }
+    httpd_ws_frame_t ws_pkt;
+    <span style="color:#66d9ef">uint8_t</span> <span style="color:#f92672">*</span>buf <span style="color:#f92672">=</span> NULL;
+    memset(<span style="color:#f92672">&amp;</span>ws_pkt, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(httpd_ws_frame_t));
+    ws_pkt.type <span style="color:#f92672">=</span> HTTPD_WS_TYPE_TEXT;
+    <span style="color:#75715e">/* Set max_len = 0 to get the frame len */</span>
+    esp_err_t ret <span style="color:#f92672">=</span> httpd_ws_recv_frame(req, <span style="color:#f92672">&amp;</span>ws_pkt, <span style="color:#ae81ff">0</span>);
+    <span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">!=</span> ESP_OK)
+    {
+        ws_client_remove(httpd_req_to_sockfd(req));
+        ESP_LOGE(TAG, <span style="color:#e6db74">&#34;get frame len failed %d&#34;</span>, ret);
+        <span style="color:#66d9ef">return</span> ret;
+    }
+    ESP_LOGI(TAG, <span style="color:#e6db74">&#34;frame len is %d&#34;</span>, ws_pkt.len);
+    <span style="color:#66d9ef">if</span> (ws_pkt.len)
+    {
+        <span style="color:#75715e">/* ws_pkt.len + 1 is for NULL termination as we are expecting a string */</span>
+        buf <span style="color:#f92672">=</span> calloc(<span style="color:#ae81ff">1</span>, ws_pkt.len <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
+        <span style="color:#66d9ef">if</span> (buf <span style="color:#f92672">==</span> NULL)
+        {
+            ESP_LOGE(TAG, <span style="color:#e6db74">&#34;Failed to calloc memory for buf&#34;</span>);
+            <span style="color:#66d9ef">return</span> ESP_ERR_NO_MEM;
+        }
+        ws_pkt.payload <span style="color:#f92672">=</span> buf;
+        <span style="color:#75715e">/* Set max_len = ws_pkt.len to get the frame payload */</span>
+        ret <span style="color:#f92672">=</span> httpd_ws_recv_frame(req, <span style="color:#f92672">&amp;</span>ws_pkt, ws_pkt.len);
+        <span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">!=</span> ESP_OK)
+        {
+            ESP_LOGE(TAG, <span style="color:#e6db74">&#34;httpd_ws_recv_frame failed with %d&#34;</span>, ret);
+            free(buf);
+            <span style="color:#66d9ef">return</span> ret;
+        }
+        ESP_LOGI(TAG, <span style="color:#e6db74">&#34;Got packet with message: %s&#34;</span>, ws_pkt.payload);
+    }
+    ESP_LOGI(TAG, <span style="color:#e6db74">&#34;Packet type: %d&#34;</span>, ws_pkt.type);
+    <span style="color:#66d9ef">if</span> (ws_pkt.type <span style="color:#f92672">==</span> HTTPD_WS_TYPE_TEXT <span style="color:#f92672">&amp;&amp;</span>
+        strcmp((<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)ws_pkt.payload, <span style="color:#e6db74">&#34;Trigger async&#34;</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+    {
+        free(buf);
+        <span style="color:#66d9ef">return</span> trigger_async_send(req<span style="color:#f92672">-&gt;</span>handle, req);
+    }
+
+    ret <span style="color:#f92672">=</span> httpd_ws_send_frame(req, <span style="color:#f92672">&amp;</span>ws_pkt);
+    <span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">!=</span> ESP_OK)
+    {
+        ESP_LOGE(TAG, <span style="color:#e6db74">&#34;httpd_ws_send_frame failed with %d&#34;</span>, ret);
+    }
+    free(buf);
+    <span style="color:#66d9ef">return</span> ret;
+}
+</code></pre></div><h2 id="添加客户端">添加客户端<a href="#添加客户端" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">ws_client_add</span>(<span style="color:#66d9ef">int</span> fd)
+{
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>s_ws_lock)
+        <span style="color:#66d9ef">return</span>;
+    xSemaphoreTake(s_ws_lock, portMAX_DELAY);
+    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> WS_MAX_CLIENTS; <span style="color:#f92672">++</span>i)
+    {
+        <span style="color:#66d9ef">if</span> (s_client_fds[i] <span style="color:#f92672">==</span> fd)
+        { <span style="color:#75715e">// 已存在
+</span><span style="color:#75715e"></span>            xSemaphoreGive(s_ws_lock);
+            <span style="color:#66d9ef">return</span>;
+        }
+        <span style="color:#66d9ef">if</span> (s_client_fds[i] <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>)
+        {
+            s_client_fds[i] <span style="color:#f92672">=</span> fd;
+            <span style="color:#66d9ef">break</span>;
+        }
+    }
+    xSemaphoreGive(s_ws_lock);
+}
+</code></pre></div><p>calloc 与 malloc 的区别:</p>
+<ul>
+<li>初始化
+<ul>
+<li>malloc(size): 只分配内存,内容未初始化(是脏数据)。</li>
+<li>calloc(n, size): 分配 n*size 字节,并将全部字节置为 0。</li>
+</ul>
+</li>
+<li>形参
+<ul>
+<li>malloc 只有字节数一个参数。</li>
+<li>calloc 有元素个数和单个元素大小两个参数,更适合“数组/结构体数组”。</li>
+</ul>
+</li>
+<li>溢出检查
+<ul>
+<li>malloc 需要你自己计算 n*size,可能溢出。</li>
+<li>calloc 一般会在内部做乘法溢出检查(实现相关),溢出时返回 NULL,更安全。</li>
+</ul>
+</li>
+<li>性能
+<ul>
+<li>calloc 需要清零,在 ESP-IDF 这类无页懒分配的系统上确实要实际写零,会比 malloc 略慢; 但省去了手动 memset。</li>
+</ul>
+</li>
+</ul>
+<p>目前修改增加了两种频道</p>
+<p>一种是之前的video频道，外加一个传文字内容的的吧</p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

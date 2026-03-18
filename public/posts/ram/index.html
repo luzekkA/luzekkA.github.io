@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title> :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="使用SRAM Macro替换RTL代码中的仿真用RAM [TOC]
+1.根据处理器实际使用的RAM，使用MemoryCompiler生成RAM的Macro 如果你不清楚实际使用的RAM大小，可以先跑一次综合，然后在mapped文件夹中寻找对应的文件，然后在文件中寻找RAM的大小信息，例如：
+module sirv_sim_ram_DP8192_FORCE_X2ZERO0_DW64_MW8_AW13 ( clk, din, addr, cs, we, wem, dout ); input [63:0] din; input [12:0] addr; input [7:0] wem; output [63:0] dout; input clk, cs, we; endmodule module sirv_sim_ram_DP16384_FORCE_X2ZERO1_DW32_MW4_AW14 ( clk, din, addr, cs, we, wem, dout ); input [31:0] din; input [13:0] addr; input [3:0] wem; output [31:0] dout; input clk, cs, we; endmodule 从mapped的.v文件中可以找到以上信息，由此可以看出主要使用了两种尺寸的RAM
+   属性 值     Instance Name SRAM_4096x64_MW8   Number of Words 4096   Number of Bits 64   Frequency &amp;lt;MHz&amp;gt; 200   Multiplexer Width 8   Word Partition Size 8       属性 值     Instance Name SRAM_2048x32_MW4   Number of Words 2048   Number of Bits 32   Frequency &amp;lt;MHz&amp;gt; 200   Multiplexer Width 4   Word Partition Size 8    你可以使用上述参数，然后在PDK对应的MemoryCompiler中生成对应的." />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="https://luzekka.github.io/posts/ram/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/syntax.min.a0773cce9310cb6d8ed23e50f005448facf29a53001b57e038828daa466b25c0.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="https://luzekka.github.io/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="https://luzekka.github.io/favicon.png">
+<link rel="apple-touch-icon" href="https://luzekka.github.io/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="">
+<meta property="og:description" content="使用SRAM Macro替换RTL代码中的仿真用RAM [TOC]
+1.根据处理器实际使用的RAM，使用MemoryCompiler生成RAM的Macro 如果你不清楚实际使用的RAM大小，可以先跑一次综合，然后在mapped文件夹中寻找对应的文件，然后在文件中寻找RAM的大小信息，例如：
+module sirv_sim_ram_DP8192_FORCE_X2ZERO0_DW64_MW8_AW13 ( clk, din, addr, cs, we, wem, dout ); input [63:0] din; input [12:0] addr; input [7:0] wem; output [63:0] dout; input clk, cs, we; endmodule module sirv_sim_ram_DP16384_FORCE_X2ZERO1_DW32_MW4_AW14 ( clk, din, addr, cs, we, wem, dout ); input [31:0] din; input [13:0] addr; input [3:0] wem; output [31:0] dout; input clk, cs, we; endmodule 从mapped的.v文件中可以找到以上信息，由此可以看出主要使用了两种尺寸的RAM
+   属性 值     Instance Name SRAM_4096x64_MW8   Number of Words 4096   Number of Bits 64   Frequency &amp;lt;MHz&amp;gt; 200   Multiplexer Width 8   Word Partition Size 8       属性 值     Instance Name SRAM_2048x32_MW4   Number of Words 2048   Number of Bits 32   Frequency &amp;lt;MHz&amp;gt; 200   Multiplexer Width 4   Word Partition Size 8    你可以使用上述参数，然后在PDK对应的MemoryCompiler中生成对应的." />
+<meta property="og:url" content="https://luzekka.github.io/posts/ram/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="https://luzekka.github.io/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://luzekka.github.io/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://luzekka.github.io/posts/ram/"></a>
+  </h1>
+  <div class="post-meta"></div>
+
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="使用sram-macro替换rtl代码中的仿真用ram">使用SRAM Macro替换RTL代码中的仿真用RAM<a href="#使用sram-macro替换rtl代码中的仿真用ram" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>[TOC]</p>
+<h2 id="1根据处理器实际使用的ram使用memorycompiler生成ram的macro">1.根据处理器实际使用的RAM，使用MemoryCompiler生成RAM的Macro<a href="#1根据处理器实际使用的ram使用memorycompiler生成ram的macro" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>如果你不清楚实际使用的RAM大小，可以先跑一次综合，然后在mapped文件夹中寻找对应的文件，然后在文件中寻找RAM的大小信息，例如：</p>
+<pre tabindex="0"><code>module sirv_sim_ram_DP8192_FORCE_X2ZERO0_DW64_MW8_AW13 ( clk, din, addr, cs, 
+        we, wem, dout );
+  input [63:0] din;
+  input [12:0] addr;
+  input [7:0] wem;
+  output [63:0] dout;
+  input clk, cs, we;
+
+
+endmodule
+
+
+module sirv_sim_ram_DP16384_FORCE_X2ZERO1_DW32_MW4_AW14 ( clk, din, addr, cs, 
+        we, wem, dout );
+  input [31:0] din;
+  input [13:0] addr;
+  input [3:0] wem;
+  output [31:0] dout;
+  input clk, cs, we;
+
+endmodule
+</code></pre><p>从mapped的.v文件中可以找到以上信息，由此可以看出主要使用了两种尺寸的RAM</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Instance Name</td>
+<td>SRAM_4096x64_MW8</td>
+</tr>
+<tr>
+<td>Number of Words</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>Number of Bits</td>
+<td>64</td>
+</tr>
+<tr>
+<td>Frequency  &lt;MHz&gt;</td>
+<td>200</td>
+</tr>
+<tr>
+<td>Multiplexer Width</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Word Partition Size</td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Instance Name</td>
+<td>SRAM_2048x32_MW4</td>
+</tr>
+<tr>
+<td>Number of Words</td>
+<td>2048</td>
+</tr>
+<tr>
+<td>Number of Bits</td>
+<td>32</td>
+</tr>
+<tr>
+<td>Frequency  &lt;MHz&gt;</td>
+<td>200</td>
+</tr>
+<tr>
+<td>Multiplexer Width</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Word Partition Size</td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<p>你可以使用上述参数，然后在PDK对应的MemoryCompiler中生成对应的.lib文件以及.v文件</p>
+<p>在这个项目中采用的命名方式为SRAM[Number of Words]x[Number of Bits]_MW[Multiplexer Width].[lib or v or sth]</p>
+<h3 id="查看生成的lib文件">查看生成的.lib文件<a href="#查看生成的lib文件" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在.lib文件中搜索area的相关内容，你应该可以找到这个内存块的相关面积信息，例如：</p>
+<pre tabindex="0"><code>cell(SRAM_4096x32_MW8) {
+	area		 : 413048.946;
+	dont_use	 : TRUE;
+	dont_touch	 : TRUE;
+        interface_timing : TRUE;
+	memory() {
+		type : ram;
+		address_width : 12;
+		word_width : 32;
+	}
+</code></pre><p>其中<code>area		 : 413048.946;</code>就是模块对应的面积，可以对后面进行综合之后的Macro面积用作验证参考</p>
+<h2 id="2使用生成的memory-ip对原本的ram进行替换">2.使用生成的Memory IP对原本的RAM进行替换<a href="#2使用生成的memory-ip对原本的ram进行替换" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>如果MemoryCompiler生成的Memory的尺寸有比较大的限制，那么可以采用多块小型SRAM进行拼接的方式</p>
+<p>(假设)如果你的MemoryCompiler最大只能生成4096x64尺寸的RAM,但是你需要8192x64尺寸的RAM，那么可以考虑使用两块4096x64尺寸的RAM进行拼接的方式解决这个问题。建议拿来拼接的小块RAM，只更改[Number of Words]以及[Number of Bits]这两个参数，其他参数尽量与原来的大块内存保持相同。</p>
+<p>例如：</p>
+<pre tabindex="0"><code>if (DP==8192 &amp;&amp; DW==64 &amp;&amp; MW==8) begin: g_ip_8192x64_by_4096x64
+    // 用 2 颗 4096x64 (MW8) 宏实现：深度 2 倍分 bank，每 bank 4096×64
+    // 地址拆分：A_word[0+:12] 为每 bank 内 64b 词地址；A_word[12] 为 bank 选择位
+    localparam integer AW_WORD = (DP&lt;=1) ? 1 : $clog2(DP); // 13
+    localparam integer SHIFT   = (AW &gt;= (AW_WORD + 2)) ? 2 : 0; // 若为字节地址则去掉低2位
+    wire [AW_WORD-1:0] A_word = addr[SHIFT +: AW_WORD];
+
+    localparam integer BANK_ADDR_W = 12; // 4096 深度 =&gt; 12 位词地址
+    localparam integer NUM_BANKS   = 2;
+    localparam integer BANK_SEL_W  = 1;
+    
+    wire [BANK_ADDR_W-1:0] A_in = A_word[0 +: BANK_ADDR_W];
+    wire [BANK_SEL_W-1:0]  bank_idx = A_word[BANK_ADDR_W +: BANK_SEL_W];
+    
+    // 写掩码（8×8b，低有效）：仅选中 bank 参与
+    wire [7:0] WEN_b0 = ~({8{cs &amp; we &amp; (bank_idx==1'b0)}} &amp; wem[7:0]);
+    wire [7:0] WEN_b1 = ~({8{cs &amp; we &amp; (bank_idx==1'b1)}} &amp; wem[7:0]);
+    
+    wire CENA_b0 = ~(cs &amp; (bank_idx==1'b0));
+    wire CENA_b1 = ~(cs &amp; (bank_idx==1'b1));
+    
+    wire [63:0] qa_b0, qa_b1;
+    
+    SRAM_4096x64_MW8 u_sram_b0 (
+      .QA   (qa_b0),
+      .QB   (),
+      .CLKA (clk),
+      .CENA (CENA_b0),
+      .WENA (WEN_b0),
+      .AA   (A_in),
+      .DA   (din),
+      .CLKB (1'b0), .CENB (1'b1), .WENB ({8{1'b1}}), .AB (12'b0), .DB (64'b0),
+      .EMAA (3'b000), .EMAB (3'b000)
+    );
+    
+    SRAM_4096x64_MW8 u_sram_b1 (
+      .QA   (qa_b1),
+      .QB   (),
+      .CLKA (clk),
+      .CENA (CENA_b1),
+      .WENA (WEN_b1),
+      .AA   (A_in),
+      .DA   (din),
+      .CLKB (1'b0), .CENB (1'b1), .WENB ({8{1'b1}}), .AB (12'b0), .DB (64'b0),
+      .EMAA (3'b000), .EMAB (3'b000)
+    );
+    
+    assign dout = (bank_idx==1'b1) ? qa_b1 : qa_b0;
+
+  end
+</code></pre><h2 id="3使用综合工具进行综合">3.使用综合工具进行综合<a href="#3使用综合工具进行综合" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="如果你使用design-compiler进行综合">如果你使用Design Compiler进行综合<a href="#如果你使用design-compiler进行综合" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="需要进行-pdk-的相关设定">需要进行 PDK 的相关设定<a href="#需要进行-pdk-的相关设定" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>如果你使用Design Compiler(简称DC)进行综合</p>
+<p>你需要把对应的.lib文件，使用Lib Compiler生成对应的db文件，然后将对应的db文件添加到link_library中</p>
+<p>例如：</p>
+<pre tabindex="0"><code>set_app_var link_library [concat [get_app_var link_library] $SRAM_DB_PATH]
+</code></pre><h4 id="验证">验证<a href="#验证" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>如果你成功进行了综合</p>
+<p>你可以查看对应的doc/[top_module]/[top_module].rpt,这是对应模块的面积报告，如果正常结束了综合流程，那么生成的报告应该是类似这样的：</p>
+<pre tabindex="0"><code> 
+****************************************
+Report : area
+Design : e203_soc_top
+Version: V-2023.12-SP3
+Date   : Sun Oct 26 19:37:44 2025
+****************************************
+Library(s) Used:
+
+    slow (File: /mnt/hgfs/processor_research/pdk/TSMC.90/aci/sc-x/synopsys/slow.db)
+    USERLIB (File: /mnt/hgfs/processor_research/pdk/SRAM/db/SRAM_2048x32_MW4_ss_0.9_125.0_syn.db)
+    USERLIB (File: /mnt/hgfs/processor_research/pdk/SRAM/db/SRAM_4096x64_MW8_ss_0.9_125.0_syn.db)
+
+Number of ports:                        71309
+Number of nets:                        130999
+Number of cells:                        66938
+Number of combinational cells:          51533
+Number of sequential cells:             12821
+Number of macros/black boxes:              10
+Number of buf/inv:                      11492
+Number of references:                       2
+
+Combinational area:             261372.590763
+Buf/Inv area:                    43510.824670
+Noncombinational area:          195657.940908
+Macro/Black Box area:          3509506.250000
+Net Interconnect area:         8416049.557098
+
+Total cell area:               3966536.781671
+Total area:                   12382586.338770
+1
+
+</code></pre><p>在其中你可以看到<code>Macro/Black Box area:          3509506.250000</code></p>
+<p>你可以通过简单的计算得出，这就是我们所使用的SRAM的面积</p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
