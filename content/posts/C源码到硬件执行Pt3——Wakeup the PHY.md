@@ -1,4 +1,12 @@
-[TOC]
+---
+title: "C 源码到硬件执行Pt3——Wakeup the PHY"
+date: 2026-03-19T19:44:21+08:00
+draft: false
+toc : true
+tags: ["C语言", "编译器", "链接", "操作系统"]
+categories: ["底层原理"]
+summary: "本文拆解了链接脚本（Linker Script）如何通过 LMA 与 VMA 的地址解耦，化解 Flash 只读与 RAM 易失的物理矛盾；透视启动代码（Startup Code）在进入 main 函数前，如何通过栈指针建立、.data 段搬运与 .bss 段清零，完成从静态数据到运行时内存的冷启动。"
+---
 
 ## 第一部分：程序真正的入口
 
@@ -766,7 +774,7 @@ Program Headers:
 - 既然 ROM 里没它，它自然就不需要 LMA。
 - 它只需要在运行时（VMA）在 SRAM 里占个坑，然后由启动代码把它抹成零即可。
 
-### BootLoader 的责任
+### Startup Code 的责任
 
 链接脚本只是画好了“规划图”，它并不会自动搬运数据。如果你的 `_start` 汇编里没写搬运逻辑，程序一跑就会因为找不到变量初值而崩溃。
 
