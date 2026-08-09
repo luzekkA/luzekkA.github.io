@@ -184,26 +184,7 @@
 
         <div class="post-content">
           
-            <h1 id="图像处理">图像处理</h1>
-<p>最邻近缩放算法</p>
-<p>// 简单 RGB565 最近邻缩放：将 src (sw x sh) 缩放到 dst (dw x dh)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">rgb565_scale_nearest</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">uint16_t</span> <span style="color:#f92672">*</span>src, <span style="color:#66d9ef">int</span> sw, <span style="color:#66d9ef">int</span> sh,
-</span></span><span style="display:flex;"><span>                                 <span style="color:#66d9ef">uint16_t</span> <span style="color:#f92672">*</span>dst, <span style="color:#66d9ef">int</span> dw, <span style="color:#66d9ef">int</span> dh)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> y <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; y <span style="color:#f92672">&lt;</span> dh; <span style="color:#f92672">++</span>y)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> sy <span style="color:#f92672">=</span> (y <span style="color:#f92672">*</span> sh) <span style="color:#f92672">/</span> dh; <span style="color:#75715e">// 对应源行
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">uint16_t</span> <span style="color:#f92672">*</span>src_line <span style="color:#f92672">=</span> src <span style="color:#f92672">+</span> sy <span style="color:#f92672">*</span> sw;
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">uint16_t</span> <span style="color:#f92672">*</span>dst_line <span style="color:#f92672">=</span> dst <span style="color:#f92672">+</span> y <span style="color:#f92672">*</span> dw;
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; x <span style="color:#f92672">&lt;</span> dw; <span style="color:#f92672">++</span>x)
-</span></span><span style="display:flex;"><span>        {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> sx <span style="color:#f92672">=</span> (x <span style="color:#f92672">*</span> sw) <span style="color:#f92672">/</span> dw;
-</span></span><span style="display:flex;"><span>            dst_line[x] <span style="color:#f92672">=</span> src_line[sx];
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>就是按行优先，一行一行处理，然后先计算出对应源的行与目的行</p>
-<p>然后在行里面遍历，按照缩放取对应的X</p>
+            从零实现 RGB565 格式的最近邻图像缩放算法，逐行映射源像素到目标像素，适合嵌入式设备上的轻量级图像缩放场景。
           
         </div>
 

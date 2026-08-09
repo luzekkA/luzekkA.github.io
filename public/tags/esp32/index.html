@@ -226,40 +226,7 @@
 
         <div class="post-content">
           
-            <h1 id="uvc使用">UVC使用</h1>
-<pre tabindex="0"><code>esp_err_t uvc_start(void)
-{
-    rx_frames_queue = xQueueCreate(3, sizeof(uvc_host_frame_t *));
-    assert(rx_frames_queue);
-
-    // Install USB Host driver. Should only be called once in entire application
-    WS_LOGI(&#34;Installing USB Host&#34;);
-    const usb_host_config_t host_config = {
-        .skip_phy_setup = false,
-        .intr_flags = ESP_INTR_FLAG_LEVEL1,
-    };
-    ESP_ERROR_CHECK(usb_host_install(&amp;host_config));
-
-    // Create a task that will handle USB library events
-    BaseType_t task_created = xTaskCreatePinnedToCore(usb_lib_task, &#34;usb_lib&#34;, 4096, NULL, EXAMPLE_USB_HOST_PRIORITY, NULL, tskNO_AFFINITY);
-    assert(task_created == pdTRUE);
-
-    WS_LOGI(&#34;Installing UVC driver&#34;);
-    const uvc_host_driver_config_t uvc_driver_config = {
-        .driver_task_stack_size = 4 * 1024,
-        .driver_task_priority = EXAMPLE_USB_HOST_PRIORITY + 1,
-        .xCoreID = tskNO_AFFINITY,
-        .create_background_task = true,
-    };
-    ESP_ERROR_CHECK(uvc_host_install(&amp;uvc_driver_config));
-
-    task_created = xTaskCreatePinnedToCore(frame_handling_task, &#34;frame_hdl&#34;, 4096, (void *)&amp;stream_config, EXAMPLE_USB_HOST_PRIORITY - 2, NULL, tskNO_AFFINITY);
-    assert(task_created == pdTRUE);
-    return ESP_OK;
-}
-</code></pre><h2 id="创建队列">创建队列</h2>
-<h2 id="安装usb驱动">安装USB驱动</h2>
-<p>frame_callback（帧回调）</p>
+            基于 ESP32 的 UVC（USB Video Class）协议实战，涵盖 USB Host 驱动安装、UVC 设备枚举与帧队列管理。
           
         </div>
 
@@ -293,43 +260,7 @@
 
         <div class="post-content">
           
-            <h1 id="esp32-websocket">ESP32 websocket</h1>
-<h2 id="启动webserver">启动webserver</h2>
-<p>创建http服务监听端口</p>
-<p>初始化一些全局变量</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">start_webserver</span>(<span style="color:#66d9ef">void</span>){
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">httpd_handle_t</span> server <span style="color:#f92672">=</span> NULL;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">httpd_config_t</span> config <span style="color:#f92672">=</span> <span style="color:#a6e22e">HTTPD_DEFAULT_CONFIG</span>();
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">httpd_start</span>(<span style="color:#f92672">&amp;</span>server, <span style="color:#f92672">&amp;</span>config);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">httpd_uri_t</span> ws <span style="color:#f92672">=</span> {
-</span></span><span style="display:flex;"><span>        .uri <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/ws&#34;</span>,
-</span></span><span style="display:flex;"><span>        .method <span style="color:#f92672">=</span> HTTP_GET,
-</span></span><span style="display:flex;"><span>        .handler <span style="color:#f92672">=</span> handler,
-</span></span><span style="display:flex;"><span>        .user_ctx <span style="color:#f92672">=</span> NULL,
-</span></span><span style="display:flex;"><span>        .is_websocket <span style="color:#f92672">=</span> true};
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">httpd_register_uri_handler</span>(server, <span style="color:#f92672">&amp;</span>ws);
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//httpd_register_uri_handler 注册 URL
-</span></span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 初始化广播所需的全局状态
-</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">//把这个server给全局变量
-</span></span></span><span style="display:flex;"><span>    s_server_handle <span style="color:#f92672">=</span> server;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>s_ws_lock)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">//!s_ws_lock判断锁有没有被创建
-</span></span></span><span style="display:flex;"><span>        s_ws_lock <span style="color:#f92672">=</span> <span style="color:#a6e22e">xSemaphoreCreateMutex</span>();
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> WS_MAX_CLIENTS; <span style="color:#f92672">++</span>i)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        s_client_fds[i] <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ESP_LOGI</span>(TAG, <span style="color:#e6db74">&#34;WebSocket server ready&#34;</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> server;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="handler函数">handler函数</h2>
-<p>然后我访问的时候就会进入到handler函数</p>
+            在 ESP32 上搭建 WebSocket 服务端，涵盖 HTTP Server 启动、WebSocket 握手注册、多客户端管理与互斥锁广播机制。
           
         </div>
 
