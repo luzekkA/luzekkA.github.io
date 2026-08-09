@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title>MemoryCompiler on My New Hugo Site</title>
-		<link>http://localhost:7659/tags/memorycompiler/</link>
-		<description>Recent content in MemoryCompiler on My New Hugo Site</description>
+		<title>MemoryCompiler on luzekkA的个人博客</title>
+		<link>http://localhost:2586/tags/memorycompiler/</link>
+		<description>Recent content in MemoryCompiler on luzekkA的个人博客</description>
 		<generator>Hugo</generator>
 		<language>zh-cn</language>
 		
@@ -12,12 +12,12 @@
 		
 			<lastBuildDate>Wed, 18 Mar 2026 16:20:42 +0800</lastBuildDate>
 		
-			<atom:link href="http://localhost:7659/tags/memorycompiler/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="http://localhost:2586/tags/memorycompiler/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>使用SRAM Macro替换RTL代码中的仿真用RAM</title>
-				<link>http://localhost:7659/posts/%E4%BD%BF%E7%94%A8sram-macro%E6%9B%BF%E6%8D%A2rtl%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BB%BF%E7%9C%9F%E7%94%A8ram/</link>
+				<link>http://localhost:2586/posts/%E4%BD%BF%E7%94%A8sram-macro%E6%9B%BF%E6%8D%A2rtl%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BB%BF%E7%9C%9F%E7%94%A8ram/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/posts/%E4%BD%BF%E7%94%A8sram-macro%E6%9B%BF%E6%8D%A2rtl%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BB%BF%E7%9C%9F%E7%94%A8ram/</guid>
+				<guid>http://localhost:2586/posts/%E4%BD%BF%E7%94%A8sram-macro%E6%9B%BF%E6%8D%A2rtl%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BB%BF%E7%9C%9F%E7%94%A8ram/</guid>
 				<description>本文记录了在数字 IC 综合流程中，如何通过 MemoryCompiler 生成物理 SRAM Macro 并替换 RTL 仿真模型的过程。涵盖了从 mapped 网表尺寸提取、SRAM 拼接逻辑实现到 Design Compiler 链路库配置的完整实战路径。</description>
 			</item>
 	</channel>

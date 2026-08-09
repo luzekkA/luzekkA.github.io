@@ -1,6 +1,6 @@
 baseURL = 'https://luzekka.github.io/'
 languageCode = 'zh-cn'
-title = 'My New Hugo Site'
+title = 'luzekkA的个人博客'
 theme = 'terminal'
 
 [menu]

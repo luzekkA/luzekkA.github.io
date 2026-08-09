@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title>个人作品集 on My New Hugo Site</title>
-		<link>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/</link>
-		<description>Recent content in 个人作品集 on My New Hugo Site</description>
+		<title>个人作品集 on luzekkA的个人博客</title>
+		<link>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/</link>
+		<description>Recent content in 个人作品集 on luzekkA的个人博客</description>
 		<generator>Hugo</generator>
 		<language>zh-cn</language>
 		
@@ -12,33 +12,33 @@
 		
 			<lastBuildDate>Wed, 05 Aug 2026 12:00:00 +0800</lastBuildDate>
 		
-			<atom:link href="http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>ChatChat 聊聊APP</title>
-				<link>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/chatchat-%E8%81%8A%E8%81%8Aapp/</link>
+				<link>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/chatchat-%E8%81%8A%E8%81%8Aapp/</link>
 				<pubDate>Wed, 05 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/chatchat-%E8%81%8A%E8%81%8Aapp/</guid>
+				<guid>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/chatchat-%E8%81%8A%E8%81%8Aapp/</guid>
 				<description>单机优先、零自建服务器成本、隐私本地化的 AI 记忆助手与理性咨询 App，将人生经历沉淀为本地可检索的长期语义记忆。</description>
 			</item>
 			<item>
 				<title>“支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现”</title>
-				<link>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/</link>
+				<link>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/</guid>
+				<guid>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/</guid>
 				<description>“设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，基于 AXI4 总线完成 SoC 集成，并搭建了从 RTL 硬件到 C 代码的全栈工程生态。”</description>
 			</item>
 			<item>
 				<title>Linux 图像处理中间件平台</title>
-				<link>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
+				<link>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
 				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</guid>
+				<guid>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</guid>
 				<description>基于共享内存零拷贝 + UDS 轻量信令的高性能图像处理中间件，C/Python 混合架构，峰值 1340 QPS，端到端延迟 &amp;lt; 3ms。</description>
 			</item>
 			<item>
 				<title>非接触式眼底镜</title>
-				<link>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</link>
+				<link>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</link>
 				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</guid>
+				<guid>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</guid>
 				<description>一款用于基层医疗场景的非接触式眼底成像设备，基于 FreeRTOS 和 ESP32 平台，实现实时视频流采集与传输，辅助医生观察眼部病变。</description>
 			</item>
 	</channel>

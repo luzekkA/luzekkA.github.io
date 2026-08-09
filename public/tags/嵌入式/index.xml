@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title>嵌入式 on My New Hugo Site</title>
-		<link>http://localhost:7659/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</link>
-		<description>Recent content in 嵌入式 on My New Hugo Site</description>
+		<title>嵌入式 on luzekkA的个人博客</title>
+		<link>http://localhost:2586/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</link>
+		<description>Recent content in 嵌入式 on luzekkA的个人博客</description>
 		<generator>Hugo</generator>
 		<language>zh-cn</language>
 		
@@ -12,33 +12,33 @@
 		
 			<lastBuildDate>Wed, 15 Jul 2026 12:00:00 +0800</lastBuildDate>
 		
-			<atom:link href="http://localhost:7659/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="http://localhost:2586/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>非接触式眼底镜</title>
-				<link>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</link>
+				<link>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</link>
 				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</guid>
+				<guid>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</guid>
 				<description>一款用于基层医疗场景的非接触式眼底成像设备，基于 FreeRTOS 和 ESP32 平台，实现实时视频流采集与传输，辅助医生观察眼部病变。</description>
 			</item>
 			<item>
 				<title>UVC使用</title>
-				<link>http://localhost:7659/posts/uvc/</link>
+				<link>http://localhost:2586/posts/uvc/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/posts/uvc/</guid>
+				<guid>http://localhost:2586/posts/uvc/</guid>
 				<description>基于 ESP32 的 UVC（USB Video Class）协议实战，涵盖 USB Host 驱动安装、UVC 设备枚举与帧队列管理。</description>
 			</item>
 			<item>
 				<title>ESP32 websocket</title>
-				<link>http://localhost:7659/posts/esp32-websocket/</link>
+				<link>http://localhost:2586/posts/esp32-websocket/</link>
 				<pubDate>Fri, 20 Feb 2026 17:46:18 +0800</pubDate>
-				<guid>http://localhost:7659/posts/esp32-websocket/</guid>
+				<guid>http://localhost:2586/posts/esp32-websocket/</guid>
 				<description>在 ESP32 上搭建 WebSocket 服务端，涵盖 HTTP Server 启动、WebSocket 握手注册、多客户端管理与互斥锁广播机制。</description>
 			</item>
 			<item>
 				<title>ESP32 FreeRTOS Checklist</title>
-				<link>http://localhost:7659/skills/esp32/freertos/</link>
+				<link>http://localhost:2586/skills/esp32/freertos/</link>
 				<pubDate>Wed, 21 Jan 2026 01:48:25 +0800</pubDate>
-				<guid>http://localhost:7659/skills/esp32/freertos/</guid>
+				<guid>http://localhost:2586/skills/esp32/freertos/</guid>
 				<description>ESP32 FreeRTOS 开发核心能力清单</description>
 			</item>
 	</channel>

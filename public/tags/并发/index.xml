@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title>并发 on My New Hugo Site</title>
-		<link>http://localhost:7659/tags/%E5%B9%B6%E5%8F%91/</link>
-		<description>Recent content in 并发 on My New Hugo Site</description>
+		<title>并发 on luzekkA的个人博客</title>
+		<link>http://localhost:2586/tags/%E5%B9%B6%E5%8F%91/</link>
+		<description>Recent content in 并发 on luzekkA的个人博客</description>
 		<generator>Hugo</generator>
 		<language>zh-cn</language>
 		
@@ -12,26 +12,26 @@
 		
 			<lastBuildDate>Fri, 06 Mar 2026 14:54:18 +0800</lastBuildDate>
 		
-			<atom:link href="http://localhost:7659/tags/%E5%B9%B6%E5%8F%91/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="http://localhost:2586/tags/%E5%B9%B6%E5%8F%91/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>如何优雅地结束一个线程Pt2</title>
-				<link>http://localhost:7659/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</link>
+				<link>http://localhost:2586/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</link>
 				<pubDate>Fri, 06 Mar 2026 14:54:18 +0800</pubDate>
-				<guid>http://localhost:7659/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</guid>
+				<guid>http://localhost:2586/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</guid>
 				<description>FreeRTOS 中 task 优雅退出的工程级实践的第二集</description>
 			</item>
 			<item>
 				<title>终极FreeRTOS学习清单</title>
-				<link>http://localhost:7659/skills/esp32/ultimate_freertos/</link>
+				<link>http://localhost:2586/skills/esp32/ultimate_freertos/</link>
 				<pubDate>Wed, 21 Jan 2026 01:48:25 +0800</pubDate>
-				<guid>http://localhost:7659/skills/esp32/ultimate_freertos/</guid>
+				<guid>http://localhost:2586/skills/esp32/ultimate_freertos/</guid>
 				<description>一份FreeRTOS 终极能力清单</description>
 			</item>
 			<item>
 				<title>如何优雅地结束一个线程Pt1</title>
-				<link>http://localhost:7659/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</link>
+				<link>http://localhost:2586/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</link>
 				<pubDate>Wed, 14 Jan 2026 16:48:25 +0800</pubDate>
-				<guid>http://localhost:7659/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</guid>
+				<guid>http://localhost:2586/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</guid>
 				<description>FreeRTOS 中 task 优雅退出的工程级实践</description>
 			</item>
 	</channel>

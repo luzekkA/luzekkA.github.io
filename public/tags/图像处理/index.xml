@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title>图像处理 on My New Hugo Site</title>
-		<link>http://localhost:7659/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</link>
-		<description>Recent content in 图像处理 on My New Hugo Site</description>
+		<title>图像处理 on luzekkA的个人博客</title>
+		<link>http://localhost:2586/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</link>
+		<description>Recent content in 图像处理 on luzekkA的个人博客</description>
 		<generator>Hugo</generator>
 		<language>zh-cn</language>
 		
@@ -12,19 +12,19 @@
 		
 			<lastBuildDate>Mon, 20 Jul 2026 12:00:00 +0800</lastBuildDate>
 		
-			<atom:link href="http://localhost:7659/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="http://localhost:2586/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>Linux 图像处理中间件平台</title>
-				<link>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
+				<link>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
 				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/%E4%BD%9C%E5%93%81%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</guid>
+				<guid>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</guid>
 				<description>基于共享内存零拷贝 + UDS 轻量信令的高性能图像处理中间件，C/Python 混合架构，峰值 1340 QPS，端到端延迟 &amp;lt; 3ms。</description>
 			</item>
 			<item>
 				<title>邻近图像缩放算法</title>
-				<link>http://localhost:7659/posts/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</link>
+				<link>http://localhost:2586/posts/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/posts/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</guid>
+				<guid>http://localhost:2586/posts/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</guid>
 				<description>从零实现 RGB565 格式的最近邻图像缩放算法，逐行映射源像素到目标像素，适合嵌入式设备上的轻量级图像缩放场景。</description>
 			</item>
 	</channel>

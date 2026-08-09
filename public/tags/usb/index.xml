@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title>USB on My New Hugo Site</title>
-		<link>http://localhost:7659/tags/usb/</link>
-		<description>Recent content in USB on My New Hugo Site</description>
+		<title>USB on luzekkA的个人博客</title>
+		<link>http://localhost:2586/tags/usb/</link>
+		<description>Recent content in USB on luzekkA的个人博客</description>
 		<generator>Hugo</generator>
 		<language>zh-cn</language>
 		
@@ -12,12 +12,12 @@
 		
 			<lastBuildDate>Wed, 18 Mar 2026 16:20:42 +0800</lastBuildDate>
 		
-			<atom:link href="http://localhost:7659/tags/usb/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="http://localhost:2586/tags/usb/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>UVC使用</title>
-				<link>http://localhost:7659/posts/uvc/</link>
+				<link>http://localhost:2586/posts/uvc/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/posts/uvc/</guid>
+				<guid>http://localhost:2586/posts/uvc/</guid>
 				<description>基于 ESP32 的 UVC（USB Video Class）协议实战，涵盖 USB Host 驱动安装、UVC 设备枚举与帧队列管理。</description>
 			</item>
 	</channel>

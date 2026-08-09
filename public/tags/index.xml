@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title>Tags on My New Hugo Site</title>
-		<link>http://localhost:7659/tags/</link>
-		<description>Recent content in Tags on My New Hugo Site</description>
+		<title>Tags on luzekkA的个人博客</title>
+		<link>http://localhost:2586/tags/</link>
+		<description>Recent content in Tags on luzekkA的个人博客</description>
 		<generator>Hugo</generator>
 		<language>zh-cn</language>
 		
@@ -12,236 +12,236 @@
 		
 			<lastBuildDate>Wed, 05 Aug 2026 12:00:00 +0800</lastBuildDate>
 		
-			<atom:link href="http://localhost:7659/tags/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="http://localhost:2586/tags/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>AI</title>
-				<link>http://localhost:7659/tags/ai/</link>
+				<link>http://localhost:2586/tags/ai/</link>
 				<pubDate>Wed, 05 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/ai/</guid>
+				<guid>http://localhost:2586/tags/ai/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>Expo</title>
-				<link>http://localhost:7659/tags/expo/</link>
+				<link>http://localhost:2586/tags/expo/</link>
 				<pubDate>Wed, 05 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/expo/</guid>
+				<guid>http://localhost:2586/tags/expo/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>RAG</title>
-				<link>http://localhost:7659/tags/rag/</link>
+				<link>http://localhost:2586/tags/rag/</link>
 				<pubDate>Wed, 05 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/rag/</guid>
+				<guid>http://localhost:2586/tags/rag/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>React Native</title>
-				<link>http://localhost:7659/tags/react-native/</link>
+				<link>http://localhost:2586/tags/react-native/</link>
 				<pubDate>Wed, 05 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/react-native/</guid>
+				<guid>http://localhost:2586/tags/react-native/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>移动开发</title>
-				<link>http://localhost:7659/tags/%E7%A7%BB%E5%8A%A8%E5%BC%80%E5%8F%91/</link>
+				<link>http://localhost:2586/tags/%E7%A7%BB%E5%8A%A8%E5%BC%80%E5%8F%91/</link>
 				<pubDate>Wed, 05 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E7%A7%BB%E5%8A%A8%E5%BC%80%E5%8F%91/</guid>
+				<guid>http://localhost:2586/tags/%E7%A7%BB%E5%8A%A8%E5%BC%80%E5%8F%91/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>“AXI4”</title>
-				<link>http://localhost:7659/tags/axi4/</link>
+				<link>http://localhost:2586/tags/axi4/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/axi4/</guid>
+				<guid>http://localhost:2586/tags/axi4/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>“CPU设计”</title>
-				<link>http://localhost:7659/tags/cpu%E8%AE%BE%E8%AE%A1/</link>
+				<link>http://localhost:2586/tags/cpu%E8%AE%BE%E8%AE%A1/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/cpu%E8%AE%BE%E8%AE%A1/</guid>
+				<guid>http://localhost:2586/tags/cpu%E8%AE%BE%E8%AE%A1/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>“FPGA”</title>
-				<link>http://localhost:7659/tags/fpga/</link>
+				<link>http://localhost:2586/tags/fpga/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/fpga/</guid>
+				<guid>http://localhost:2586/tags/fpga/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>“RISC-V”</title>
-				<link>http://localhost:7659/tags/risc-v/</link>
+				<link>http://localhost:2586/tags/risc-v/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/risc-v/</guid>
+				<guid>http://localhost:2586/tags/risc-v/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>“SoC”</title>
-				<link>http://localhost:7659/tags/soc/</link>
+				<link>http://localhost:2586/tags/soc/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/soc/</guid>
+				<guid>http://localhost:2586/tags/soc/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>“Verilog”</title>
-				<link>http://localhost:7659/tags/verilog/</link>
+				<link>http://localhost:2586/tags/verilog/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/verilog/</guid>
+				<guid>http://localhost:2586/tags/verilog/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>C语言</title>
-				<link>http://localhost:7659/tags/c%E8%AF%AD%E8%A8%80/</link>
+				<link>http://localhost:2586/tags/c%E8%AF%AD%E8%A8%80/</link>
 				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/c%E8%AF%AD%E8%A8%80/</guid>
+				<guid>http://localhost:2586/tags/c%E8%AF%AD%E8%A8%80/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>Python</title>
-				<link>http://localhost:7659/tags/python/</link>
+				<link>http://localhost:2586/tags/python/</link>
 				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/python/</guid>
+				<guid>http://localhost:2586/tags/python/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>中间件</title>
-				<link>http://localhost:7659/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
+				<link>http://localhost:2586/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
 				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/</guid>
+				<guid>http://localhost:2586/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>共享内存</title>
-				<link>http://localhost:7659/tags/%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98/</link>
+				<link>http://localhost:2586/tags/%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98/</link>
 				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98/</guid>
+				<guid>http://localhost:2586/tags/%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>图像处理</title>
-				<link>http://localhost:7659/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</link>
+				<link>http://localhost:2586/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</link>
 				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</guid>
+				<guid>http://localhost:2586/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>零拷贝</title>
-				<link>http://localhost:7659/tags/%E9%9B%B6%E6%8B%B7%E8%B4%9D/</link>
+				<link>http://localhost:2586/tags/%E9%9B%B6%E6%8B%B7%E8%B4%9D/</link>
 				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E9%9B%B6%E6%8B%B7%E8%B4%9D/</guid>
+				<guid>http://localhost:2586/tags/%E9%9B%B6%E6%8B%B7%E8%B4%9D/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>ESP32</title>
-				<link>http://localhost:7659/tags/esp32/</link>
+				<link>http://localhost:2586/tags/esp32/</link>
 				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/esp32/</guid>
+				<guid>http://localhost:2586/tags/esp32/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>FreeRTOS</title>
-				<link>http://localhost:7659/tags/freertos/</link>
+				<link>http://localhost:2586/tags/freertos/</link>
 				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/freertos/</guid>
+				<guid>http://localhost:2586/tags/freertos/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>UVC</title>
-				<link>http://localhost:7659/tags/uvc/</link>
+				<link>http://localhost:2586/tags/uvc/</link>
 				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/uvc/</guid>
+				<guid>http://localhost:2586/tags/uvc/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>WebSocket</title>
-				<link>http://localhost:7659/tags/websocket/</link>
+				<link>http://localhost:2586/tags/websocket/</link>
 				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/websocket/</guid>
+				<guid>http://localhost:2586/tags/websocket/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>医疗设备</title>
-				<link>http://localhost:7659/tags/%E5%8C%BB%E7%96%97%E8%AE%BE%E5%A4%87/</link>
+				<link>http://localhost:2586/tags/%E5%8C%BB%E7%96%97%E8%AE%BE%E5%A4%87/</link>
 				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E5%8C%BB%E7%96%97%E8%AE%BE%E5%A4%87/</guid>
+				<guid>http://localhost:2586/tags/%E5%8C%BB%E7%96%97%E8%AE%BE%E5%A4%87/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>嵌入式</title>
-				<link>http://localhost:7659/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</link>
+				<link>http://localhost:2586/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</link>
 				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</guid>
+				<guid>http://localhost:2586/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>操作系统</title>
-				<link>http://localhost:7659/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</link>
+				<link>http://localhost:2586/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</link>
 				<pubDate>Thu, 19 Mar 2026 19:44:21 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</guid>
+				<guid>http://localhost:2586/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>编译器</title>
-				<link>http://localhost:7659/tags/%E7%BC%96%E8%AF%91%E5%99%A8/</link>
+				<link>http://localhost:2586/tags/%E7%BC%96%E8%AF%91%E5%99%A8/</link>
 				<pubDate>Thu, 19 Mar 2026 19:44:21 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E7%BC%96%E8%AF%91%E5%99%A8/</guid>
+				<guid>http://localhost:2586/tags/%E7%BC%96%E8%AF%91%E5%99%A8/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>链接</title>
-				<link>http://localhost:7659/tags/%E9%93%BE%E6%8E%A5/</link>
+				<link>http://localhost:2586/tags/%E9%93%BE%E6%8E%A5/</link>
 				<pubDate>Thu, 19 Mar 2026 19:44:21 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E9%93%BE%E6%8E%A5/</guid>
+				<guid>http://localhost:2586/tags/%E9%93%BE%E6%8E%A5/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>MemoryCompiler</title>
-				<link>http://localhost:7659/tags/memorycompiler/</link>
+				<link>http://localhost:2586/tags/memorycompiler/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/tags/memorycompiler/</guid>
+				<guid>http://localhost:2586/tags/memorycompiler/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>SRAM</title>
-				<link>http://localhost:7659/tags/sram/</link>
+				<link>http://localhost:2586/tags/sram/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/tags/sram/</guid>
+				<guid>http://localhost:2586/tags/sram/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>USB</title>
-				<link>http://localhost:7659/tags/usb/</link>
+				<link>http://localhost:2586/tags/usb/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/tags/usb/</guid>
+				<guid>http://localhost:2586/tags/usb/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>Verilog</title>
-				<link>http://localhost:7659/tags/verilog/</link>
+				<link>http://localhost:2586/tags/verilog/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/tags/verilog/</guid>
+				<guid>http://localhost:2586/tags/verilog/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>数字电路</title>
-				<link>http://localhost:7659/tags/%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF/</link>
+				<link>http://localhost:2586/tags/%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF/</guid>
+				<guid>http://localhost:2586/tags/%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>算法</title>
-				<link>http://localhost:7659/tags/%E7%AE%97%E6%B3%95/</link>
+				<link>http://localhost:2586/tags/%E7%AE%97%E6%B3%95/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E7%AE%97%E6%B3%95/</guid>
+				<guid>http://localhost:2586/tags/%E7%AE%97%E6%B3%95/</guid>
 				<description></description>
 			</item>
 			<item>
 				<title>并发</title>
-				<link>http://localhost:7659/tags/%E5%B9%B6%E5%8F%91/</link>
+				<link>http://localhost:2586/tags/%E5%B9%B6%E5%8F%91/</link>
 				<pubDate>Fri, 06 Mar 2026 14:54:18 +0800</pubDate>
-				<guid>http://localhost:7659/tags/%E5%B9%B6%E5%8F%91/</guid>
+				<guid>http://localhost:2586/tags/%E5%B9%B6%E5%8F%91/</guid>
 				<description></description>
 			</item>
 	</channel>
