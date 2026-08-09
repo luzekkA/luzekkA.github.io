@@ -12,6 +12,6 @@ theme = 'terminal'
 
   [[menu.main]]
     name = "作品集"
-    url = "/项目集/"
+    url = "/作品集/"
     weight = 2
 

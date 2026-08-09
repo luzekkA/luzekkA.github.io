@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
 		<title>链接 on My New Hugo Site</title>
-		<link>http://localhost:1313/tags/%E9%93%BE%E6%8E%A5/</link>
+		<link>http://localhost:7659/tags/%E9%93%BE%E6%8E%A5/</link>
 		<description>Recent content in 链接 on My New Hugo Site</description>
 		<generator>Hugo</generator>
 		<language>zh-cn</language>
@@ -12,33 +12,33 @@
 		
 			<lastBuildDate>Thu, 19 Mar 2026 19:44:21 +0800</lastBuildDate>
 		
-			<atom:link href="http://localhost:1313/tags/%E9%93%BE%E6%8E%A5/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="http://localhost:7659/tags/%E9%93%BE%E6%8E%A5/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>C 源码到硬件执行Pt3——Wakeup the PHY</title>
-				<link>http://localhost:1313/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/</link>
+				<link>http://localhost:7659/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/</link>
 				<pubDate>Thu, 19 Mar 2026 19:44:21 +0800</pubDate>
-				<guid>http://localhost:1313/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/</guid>
+				<guid>http://localhost:7659/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/</guid>
 				<description>本文拆解了链接脚本（Linker Script）如何通过 LMA 与 VMA 的地址解耦，化解 Flash 只读与 RAM 易失的物理矛盾；透视启动代码（Startup Code）在进入 main 函数前，如何通过栈指针建立、.data 段搬运与 .bss 段清零，完成从静态数据到运行时内存的冷启动。</description>
 			</item>
 			<item>
 				<title>C 源码到硬件执行Pt2——C语言的运行时</title>
-				<link>http://localhost:1313/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt2c%E8%AF%AD%E8%A8%80%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6/</link>
+				<link>http://localhost:7659/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt2c%E8%AF%AD%E8%A8%80%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:1313/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt2c%E8%AF%AD%E8%A8%80%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6/</guid>
+				<guid>http://localhost:7659/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt2c%E8%AF%AD%E8%A8%80%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6/</guid>
 				<description>本文深度拆解 C 语言运行时的‘动态秩序’，揭示栈帧回溯、堆分配算法与 sbrk 机制的物理本质，透视硬件 ABI 与启动代码如何共同构建出从局部变量到动态内存的逻辑分区。</description>
 			</item>
 			<item>
 				<title>一些神奇的C语言关键字</title>
-				<link>http://localhost:1313/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/</link>
+				<link>http://localhost:7659/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:1313/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/</guid>
+				<guid>http://localhost:7659/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/</guid>
 				<description>深入剖析 static、extern、volatile 等 C 语言关键字的底层语义与链接行为。</description>
 			</item>
 			<item>
 				<title>C 源码到硬件执行Pt1——C源码到Bin裸二进制文件</title>
-				<link>http://localhost:1313/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</link>
+				<link>http://localhost:7659/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</link>
 				<pubDate>Mon, 02 Mar 2026 17:46:18 +0800</pubDate>
-				<guid>http://localhost:1313/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</guid>
+				<guid>http://localhost:7659/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</guid>
 				<description>本文深入剖析从 C 源码到二进制镜像的转化全过程，解密 ELF 文件如何通过 Section 与 Segment 的双重視角，完成从“逻辑代码”向“硬件物理映射”的跨越。</description>
 			</item>
 	</channel>
