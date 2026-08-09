@@ -1,11 +1,11 @@
 ---
-title: “支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现”
+title: "支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现"
 date: 2026-08-01T12:00:00+08:00
 draft: false
 toc: true
-tags: [“RISC-V”, “FPGA”, “Verilog”, “CPU设计”, “AXI4”, “SoC”]
-categories: [“数字电路”]
-summary: “设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，基于 AXI4 总线完成 SoC 集成，并搭建了从 RTL 硬件到 C 代码的全栈工程生态。”
+tags: ["RISC-V", "FPGA", "Verilog", "CPU设计", "AXI4", "SoC"]
+categories: [""数字电路"]
+summary: "设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，基于 AXI4 总线完成 SoC 集成，并搭建了从 RTL 硬件到 C 代码的全栈工程生态。"
 ---
 
 # 支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现
