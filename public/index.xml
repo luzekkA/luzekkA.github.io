@@ -21,11 +21,11 @@
 				<description>单机优先、零自建服务器成本、隐私本地化的 AI 记忆助手与理性咨询 App，将人生经历沉淀为本地可检索的长期语义记忆。</description>
 			</item>
 			<item>
-				<title>“支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现”</title>
+				<title>支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现</title>
 				<link>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
 				<guid>http://localhost:2586/%E4%BD%9C%E5%93%81%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/</guid>
-				<description>“设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，基于 AXI4 总线完成 SoC 集成，并搭建了从 RTL 硬件到 C 代码的全栈工程生态。”</description>
+				<description>设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，基于 AXI4 总线完成 SoC 集成，并搭建了从 RTL 硬件到 C 代码的全栈工程生态。</description>
 			</item>
 			<item>
 				<title>Linux 图像处理中间件平台</title>

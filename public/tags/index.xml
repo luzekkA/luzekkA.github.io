@@ -49,42 +49,42 @@
 				<description></description>
 			</item>
 			<item>
-				<title>“AXI4”</title>
+				<title>AXI4</title>
 				<link>http://localhost:2586/tags/axi4/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
 				<guid>http://localhost:2586/tags/axi4/</guid>
 				<description></description>
 			</item>
 			<item>
-				<title>“CPU设计”</title>
+				<title>CPU设计</title>
 				<link>http://localhost:2586/tags/cpu%E8%AE%BE%E8%AE%A1/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
 				<guid>http://localhost:2586/tags/cpu%E8%AE%BE%E8%AE%A1/</guid>
 				<description></description>
 			</item>
 			<item>
-				<title>“FPGA”</title>
+				<title>FPGA</title>
 				<link>http://localhost:2586/tags/fpga/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
 				<guid>http://localhost:2586/tags/fpga/</guid>
 				<description></description>
 			</item>
 			<item>
-				<title>“RISC-V”</title>
+				<title>RISC-V</title>
 				<link>http://localhost:2586/tags/risc-v/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
 				<guid>http://localhost:2586/tags/risc-v/</guid>
 				<description></description>
 			</item>
 			<item>
-				<title>“SoC”</title>
+				<title>SoC</title>
 				<link>http://localhost:2586/tags/soc/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
 				<guid>http://localhost:2586/tags/soc/</guid>
 				<description></description>
 			</item>
 			<item>
-				<title>“Verilog”</title>
+				<title>Verilog</title>
 				<link>http://localhost:2586/tags/verilog/</link>
 				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
 				<guid>http://localhost:2586/tags/verilog/</guid>
@@ -217,13 +217,6 @@
 				<description></description>
 			</item>
 			<item>
-				<title>Verilog</title>
-				<link>http://localhost:2586/tags/verilog/</link>
-				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
-				<guid>http://localhost:2586/tags/verilog/</guid>
-				<description></description>
-			</item>
-			<item>
 				<title>数字电路</title>
 				<link>http://localhost:2586/tags/%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF/</link>
 				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
@@ -242,6 +235,48 @@
 				<link>http://localhost:2586/tags/%E5%B9%B6%E5%8F%91/</link>
 				<pubDate>Fri, 06 Mar 2026 14:54:18 +0800</pubDate>
 				<guid>http://localhost:2586/tags/%E5%B9%B6%E5%8F%91/</guid>
+				<description></description>
+			</item>
+			<item>
+				<title>“AXI4”</title>
+				<link>http://localhost:2586/tags/axi4/</link>
+				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+				<guid>http://localhost:2586/tags/axi4/</guid>
+				<description></description>
+			</item>
+			<item>
+				<title>“CPU设计”</title>
+				<link>http://localhost:2586/tags/cpu%E8%AE%BE%E8%AE%A1/</link>
+				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+				<guid>http://localhost:2586/tags/cpu%E8%AE%BE%E8%AE%A1/</guid>
+				<description></description>
+			</item>
+			<item>
+				<title>“FPGA”</title>
+				<link>http://localhost:2586/tags/fpga/</link>
+				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+				<guid>http://localhost:2586/tags/fpga/</guid>
+				<description></description>
+			</item>
+			<item>
+				<title>“RISC-V”</title>
+				<link>http://localhost:2586/tags/risc-v/</link>
+				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+				<guid>http://localhost:2586/tags/risc-v/</guid>
+				<description></description>
+			</item>
+			<item>
+				<title>“SoC”</title>
+				<link>http://localhost:2586/tags/soc/</link>
+				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+				<guid>http://localhost:2586/tags/soc/</guid>
+				<description></description>
+			</item>
+			<item>
+				<title>“Verilog”</title>
+				<link>http://localhost:2586/tags/verilog/</link>
+				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+				<guid>http://localhost:2586/tags/verilog/</guid>
 				<description></description>
 			</item>
 	</channel>
