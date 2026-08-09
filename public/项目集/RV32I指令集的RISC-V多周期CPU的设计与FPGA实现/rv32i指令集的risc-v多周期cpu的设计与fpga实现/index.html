@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1314&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>“支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现” :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="“设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，基于 AXI4 总线完成 SoC 集成，并搭建了从 RTL 硬件到 C 代码的全栈工程生态。”" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="http://localhost:1314/%E9%A1%B9%E7%9B%AE%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/code.min.c4581949edab7810737609fc5568852bcd908945f14561e366dcd2300a370545.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/syntax.min.a2cc694a9b481f15d41722bffc2cc54eea4c4f74fd9072b0b33253604c22606e.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="http://localhost:1314/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1314/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="“支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现”">
+<meta property="og:description" content="“设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，基于 AXI4 总线完成 SoC 集成，并搭建了从 RTL 硬件到 C 代码的全栈工程生态。”" />
+<meta property="og:url" content="http://localhost:1314/%E9%A1%B9%E7%9B%AE%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="http://localhost:1314/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+  <meta property="article:section" content="“数字电路”" />
+
+
+  <meta property="article:published_time" content="2026-08-01 12:00:00 &#43;0800 CST" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1314/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/">作品集</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/" >作品集</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1314/%E9%A1%B9%E7%9B%AE%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/">“支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现”</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2026-08-01</time></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="http://localhost:1314/tags/risc-v/">“RISC-V”</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/fpga/">“FPGA”</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/verilog/">“Verilog”</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/cpu%E8%AE%BE%E8%AE%A1/">“CPU设计”</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/axi4/">“AXI4”</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/soc/">“SoC”</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#设计演进从单周期原型到多周期架构">设计演进：从单周期原型到多周期架构</a></li>
+    <li><a href="#核心技术与微架构亮点">核心技术与微架构亮点</a>
+      <ul>
+        <li><a href="#基于-valid-ready-握手协议的模块化重构">基于 Valid-Ready 握手协议的模块化重构</a></li>
+        <li><a href="#异步变延迟访存的状态机fsm设计">异步/变延迟访存的状态机（FSM）设计</a></li>
+        <li><a href="#统一总线架构与-axi4-仲裁器设计">统一总线架构与 AXI4 仲裁器设计</a></li>
+      </ul>
+    </li>
+    <li><a href="#闭环验证体系与工程调试能力">闭环验证体系与工程调试能力</a>
+      <ul>
+        <li><a href="#基于-verilator--nemu-的指令级差分测试-difftest">基于 Verilator + NEMU 的指令级差分测试 (Difftest)</a></li>
+        <li><a href="#22-自研宿主机调试器-sdb-simple-debugger">2.2 自研宿主机调试器 SDB (Simple Debugger)</a></li>
+      </ul>
+    </li>
+    <li><a href="#嵌入式软件栈与系统引导">嵌入式软件栈与系统引导</a>
+      <ul>
+        <li><a href="#bootrom--bootloader-两阶段启动架构">“BootROM + Bootloader” 两阶段启动架构</a></li>
+        <li><a href="#32-全套工具链与抽象层构建">3.2 全套工具链与抽象层构建</a></li>
+        <li><a href="#soc-系统地址映射与外设集成">SoC 系统地址映射与外设集成</a></li>
+      </ul>
+    </li>
+    <li><a href="#fpga-实现与系统综合指标">FPGA 实现与系统综合指标</a>
+      <ul>
+        <li><a href="#硬件平台与开发环境">硬件平台与开发环境</a></li>
+        <li><a href="#vivado-block-design-系统集成">Vivado Block Design 系统集成</a></li>
+        <li><a href="#synthesis-与-implementation-流程">Synthesis 与 Implementation 流程</a></li>
+        <li><a href="#核心运行指标">核心运行指标</a></li>
+        <li><a href="#板级功能验证">板级功能验证</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h1 id="支持rv32i指令集的risc-v多周期cpu的设计与fpga实现">支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现<a href="#支持rv32i指令集的risc-v多周期cpu的设计与fpga实现" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<blockquote>
+<p><strong>项目总览:</strong> 设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，完成基于 AXI4 总线的全套片上系统（SoC）集成，并搭建了从”底层 RTL 硬件 → 闭环验证 → Bootloader 引导 → C代码”的全栈工程生态。</p>
+</blockquote>
+<h2 id="设计演进从单周期原型到多周期架构">设计演进：从单周期原型到多周期架构<a href="#设计演进从单周期原型到多周期架构" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>在构建多周期处理器之前，首先实现了一个<strong>单周期处理器原型</strong>作为<strong>ALU</strong>和<strong>指令解码器</strong>以及<strong>数据通路</strong>的基本验证，单周期处理器即所有指令在一个时钟周期内完成，包含 PC 寄存器、指令存储器、译码单元、32×32 位寄存器堆、ALU 及数据存储器等核心模块。通过该原型快速验证了 RV32I 全部 40 条指令的控制通路正确性。
+随后演进为基于 Valid-Ready 握手协议的<strong>多周期架构</strong>，将指令执行划分为取指（IF）、译码（ID）、执行（EX）、访存（MEM）、写回（WB）五个阶段。相比传统的集中式硬连线状态机，这种模块化重构有效缩短了关键组合逻辑路径、缓解了时序压力，为 SoC 集成中应对不确定访存延迟提供了天然的流水线暂停机制。</p>
+<p><img src="assets/%E5%A4%84%E7%90%86%E5%99%A8%E6%95%B0%E6%8D%AE%E9%80%9A%E8%B7%AF%E5%9B%BE.png" alt="处理器数据通路图"></p>
+<h2 id="核心技术与微架构亮点">核心技术与微架构亮点<a href="#核心技术与微架构亮点" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="基于-valid-ready-握手协议的模块化重构">基于 Valid-Ready 握手协议的模块化重构<a href="#基于-valid-ready-握手协议的模块化重构" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li><strong>架构演进</strong>：放弃传统的集中式硬连线状态机，采用 <strong>Valid-Ready 双向握手协议</strong> 对取指（IFU）、译码（IDU）、执行（EXU）、访存（LSU）、写回（WBU）五大核心单元进行深度解耦。</li>
+<li><strong>高容错与反压机制</strong>：各阶段通过状态组合自主协商数据传输，实现了天然的反压机制。面对外设高延迟或总线阻塞时，可实现周期精确级的流水线暂停控制，极大地提高了架构的演进上限。</li>
+</ul>
+<h3 id="异步变延迟访存的状态机fsm设计">异步/变延迟访存的状态机（FSM）设计<a href="#异步变延迟访存的状态机fsm设计" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li>
+<p><strong>IFU 状态机</strong>：设计 4-State 读数据有限状态机，精确控制 AXI4 读地址/读数据通道的握手时序，实现指令流的稳态供给。</p>
+<ul>
+<li><code>S_IDLE → S_AR</code>：接收上层 Valid 信号，锁存当前 PC 值</li>
+<li><code>S_AR → S_R</code>：向 AXI4 总线发送读地址，等待 arvalid/arready 握手完成</li>
+<li><code>S_R → S_OUT</code>：等待存储器的读数据返回，rvalid/rready/rlast 同时有效时锁存指令</li>
+<li><code>S_OUT → S_IDLE</code>：将 PC 和指令发送至下游译码单元，完成一次取指周期</li>
+</ul>
+</li>
+<li>
+<p><strong>LSU 状态机</strong>：针对总线延迟不确定性，设计 <strong>7-State 读写分离有限状态机</strong>。内嵌硬件自动对齐与符号扩展逻辑，支持 <code>LB/LH/LW/LBU/LHU</code> 与 <code>SB/SH/SW</code> 等全类型非对齐/部分字节访存，精准生成 <code>wstrb</code> 字节使能掩码。</p>
+<ul>
+<li><strong>读通道</strong>：<code>S_IDLE → S_AR(发送读地址) → S_R(等待数据) → S_OUT(输出结果)</code></li>
+<li><strong>写通道</strong>：<code>S_IDLE → S_AW(发送写地址) → S_W(发送写数据) → S_B(等待写响应) → S_OUT</code></li>
+<li><strong>直通通道</strong>：非访存指令直接 <code>S_IDLE → S_OUT</code>，优化吞吐效率</li>
+<li>Load 指令根据地址低 2 位 <code>addr[1:0]</code> 自动移位对齐，按 <code>LB/LH/LW/LBU/LHU</code> 类型做符号/无符号扩展</li>
+<li>Store 指令根据数据大小生成 <code>wstrb</code> 字节使能掩码（如 SB: <code>4'b0001 &lt;&lt; addr[1:0]</code>，SW: <code>4'b1111</code>）</li>
+</ul>
+</li>
+</ul>
+<h3 id="统一总线架构与-axi4-仲裁器设计">统一总线架构与 AXI4 仲裁器设计<a href="#统一总线架构与-axi4-仲裁器设计" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li><strong>工业级总线集成</strong>：内核作为 AXI Master，采用标准 AXI4/AXI4-Lite 协议挂载 UART (16550 规范)、Boot BRAM、SPI Flash 及外部 PSRAM/DDR。</li>
+<li><strong>硬件总线仲裁</strong>：设计了固定优先级/时分复用的 AXI4 总线仲裁器，高效协调单发射架构下 IFU（指令取指）与 LSU（数据读写）对单一总线主端口的竞争，确保 LSU 访存的高优先级与总线零死锁。</li>
+</ul>
+<h2 id="闭环验证体系与工程调试能力">闭环验证体系与工程调试能力<a href="#闭环验证体系与工程调试能力" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="基于-verilator--nemu-的指令级差分测试-difftest">基于 Verilator + NEMU 的指令级差分测试 (Difftest)<a href="#基于-verilator--nemu-的指令级差分测试-difftest" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li><strong>高性能编译仿真</strong>：抛弃传统慢速事件驱动仿真器，利用 <strong>Verilator</strong> 将 RTL 静态编译为 C++ 模型，实现 MIPS 级别的超高吞吐仿真。</li>
+<li><strong>参考模型逐拍比对</strong>：将 C++ 化的 NEMU 作为参考模型（Reference Model），通过 DPI-C 接口接入仿真框架。在每一个 clock cycle 之后，自动触发自研 CPU 与 NEMU 的 <strong>32 个通用寄存器（GPRs）、CSR 及 PC 状态的逐位比对</strong>，实现 Bug 现场的瞬间定位。</li>
+</ul>
+<p><img src="assets/SDB%E6%A0%B8%E5%BF%83%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91.png" alt="SDB核心运行逻辑"></p>
+<h3 id="22-自研宿主机调试器-sdb-simple-debugger">2.2 自研宿主机调试器 SDB (Simple Debugger)<a href="#22-自研宿主机调试器-sdb-simple-debugger" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>SDB 运行于宿主机，与 Verilator 生成的 C++ 仿真模型深度集成，构建了一个透明、可控的指令级观测平台。主要交互逻辑如下图所示。</p>
+<p><img src="assets/SDB%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E5%9B%BE.png" alt="SDB系统架构图"></p>
+<ul>
+<li>
+<p><strong>架构设计</strong>：模块化分层设计，<code>sdb/</code> 为调试核心层（表达式求值引擎 + 命令循环），<code>cpu/</code> 为 CPU 状态管理层（维护处理器状态 + 协调差分测试），<code>interfaces/</code> 为数据交互层（Verilator DPI-C 接口 + NEMU 动态链接库接口），<code>trace/</code> 为追踪层（ITRACE / MTRACE / DTRACE）。</p>
+</li>
+<li>
+<p><strong>表达式求值引擎</strong>：基于递归下降分析法，通过词法扫描器 + 递归下降解析器实现。支持寄存器引用（<code>$sp</code>、<code>$ra</code>）、算术运算、内存解引用，可动态计算任意表达式并修改寄存器或内存单元。并且通过<strong>随机生成测试用例</strong>的功能验证</p>
+</li>
+<li>
+<p><strong>指令追踪与差分测试集成</strong>：集成 <strong>ITRACE（指令追踪）、MTRACE（访存追踪）、DTRACE（设备追踪）</strong>，基于 Kconfig 引入图形化模块配置，实现调试开销与仿真吞吐率的动态平衡。</p>
+</li>
+<li>
+<p><strong>核心命令集</strong>：</p>
+</li>
+</ul>
+<table>
+	<thead>
+			<tr>
+					<th>命令</th>
+					<th>功能</th>
+					<th>示例</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>help</code></td>
+					<td>显示帮助信息</td>
+					<td><code>help</code></td>
+			</tr>
+			<tr>
+					<td><code>c</code></td>
+					<td>连续执行程序</td>
+					<td><code>c</code></td>
+			</tr>
+			<tr>
+					<td><code>q</code></td>
+					<td>退出 SDB</td>
+					<td><code>q</code></td>
+			</tr>
+			<tr>
+					<td><code>si [N]</code></td>
+					<td>单步执行 N 条指令</td>
+					<td><code>si</code> 或 <code>si 10</code></td>
+			</tr>
+			<tr>
+					<td><code>info r</code></td>
+					<td>显示全部 GPR + PC</td>
+					<td><code>info r</code></td>
+			</tr>
+			<tr>
+					<td><code>x N addr</code></td>
+					<td>扫描内存 N 个连续字</td>
+					<td><code>x 10 0x80000000</code></td>
+			</tr>
+			<tr>
+					<td><code>p expr</code></td>
+					<td>表达式求值</td>
+					<td><code>p $sp + 4</code></td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>CPU 状态管理</strong>：通过 <code>CPUState</code> 枚举类实现处理器运行状态的精确管理：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">enum</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CPUState</span> { RUNNING, HALTED, ABORTED, IDLE };
+</span></span></code></pre></div><p>当处理器执行 <code>ebreak</code> 指令或触发异常时，通过 <code>trap()</code> 接口转入 HALTED 状态，开发者可全面检查系统状态。</p>
+<p><img src="assets/SDB%E4%BD%BF%E7%94%A8%E7%95%8C%E9%9D%A2.png" alt="SDB使用界面"></p>
+<p>下图为系统详细逻辑过程图。</p>
+<p><img src="assets/%E5%B7%AE%E5%88%86%E6%B5%8B%E8%AF%95%E5%85%B7%E4%BD%93%E8%BF%90%E8%A1%8C%E8%BF%87%E7%A8%8B.png" alt="差分测试具体运行过程"></p>
+<h2 id="嵌入式软件栈与系统引导">嵌入式软件栈与系统引导<a href="#嵌入式软件栈与系统引导" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="bootrom--bootloader-两阶段启动架构">“BootROM + Bootloader” 两阶段启动架构<a href="#bootrom--bootloader-两阶段启动架构" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li>
+<p><strong>存储拓扑与硬件寻址</strong>：设置 Reset Vector 为片上 BRAM (<code>0x2000_0000</code>)，上电/复位后 PC 硬件强制跳转至该地址执行。</p>
+</li>
+<li>
+<p><strong>两阶段启动流程</strong>：</p>
+<ol>
+<li><strong>Stage 1 — 片上 BRAM 执行 Bootloader</strong>：栈指针初始化（<code>la sp, _stack_top</code>）→ <code>.bss</code> 段手动清零（根据 <code>_bss_start</code> / <code>_bss_end</code> 链接符号边界）→ 激活 AXI Quad SPI 控制器</li>
+<li><strong>Stage 2 — 镜像搬运与控制权转移</strong>：Bootloader 以 32-bit 宽度从 SPI Flash（<code>0x3000_0000</code>）搬运应用程序至 PSRAM（<code>0x8000_0000</code>），通过 Memory-Mapped IO 方式直接读取 Flash 地址空间，无需复杂的外设驱动协议，搬运完成后以 C 语言函数指针实现受控上下文跳转：<code>((void (*)(void))0x80000000)();</code></li>
+</ol>
+</li>
+<li>
+<p><strong>分离式编译布局</strong>：Bootloader 与应用程序采用独立的 Linker Script 分别编译。Bootloader 链接至 <code>0x2000_0000</code>（BRAM 地址空间），应用程序链接至 <code>0x8000_0000</code>（PSRAM 地址空间），两者通过 SPI Flash 上的镜像文件建立耦合关系。</p>
+</li>
+</ul>
+<p><img src="assets/%E7%B3%BB%E7%BB%9F%E5%90%AF%E5%8A%A8%E6%80%BB%E4%BD%93%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="系统启动总体流程图"></p>
+<h3 id="32-全套工具链与抽象层构建">3.2 全套工具链与抽象层构建<a href="#32-全套工具链与抽象层构建" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li>深入配置 <code>riscv64-linux-gnu-gcc</code> 交叉编译工具链，针对无 OS 环境定制编译参数：</li>
+</ul>
+<table>
+	<thead>
+			<tr>
+					<th>参数</th>
+					<th>含义</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>-march=rv32i</code></td>
+					<td>目标架构 RV32I 基础整数指令集</td>
+			</tr>
+			<tr>
+					<td><code>-mabi=ilp32</code></td>
+					<td>32 位整数 ABI（int/long/指针均为 32 位）</td>
+			</tr>
+			<tr>
+					<td><code>-nostdlib</code></td>
+					<td>禁止链接标准 C 运行时库</td>
+			</tr>
+			<tr>
+					<td><code>-nostartfiles</code></td>
+					<td>禁止链接标准启动文件</td>
+			</tr>
+			<tr>
+					<td><code>-ffreestanding</code></td>
+					<td>声明独立运行环境（bare-metal）</td>
+			</tr>
+			<tr>
+					<td><code>-O2</code></td>
+					<td>中等优化，平衡性能与可调试性</td>
+			</tr>
+	</tbody>
+</table>
+<ul>
+<li>编写独立 Linker Script（分离开引导区与应用区内存布局），实现硬件 Stack Pointer 手动初始化与 <code>.bss</code> 段清零。由于无 OS 环境，C 语言运行所需的栈空间、全局变量初始化等均需 Bootloader 手动完成。</li>
+</ul>
+<h3 id="soc-系统地址映射与外设集成">SoC 系统地址映射与外设集成<a href="#soc-系统地址映射与外设集成" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>基于 AXI4-Lite 总线协议，构建统一地址空间的多级存储 SoC 系统：</p>
+<table>
+	<thead>
+			<tr>
+					<th>地址范围</th>
+					<th>设备</th>
+					<th>大小</th>
+					<th>说明</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>0x1000_0000</code> - <code>0x1000_0FFF</code></td>
+					<td>UART</td>
+					<td>4KB</td>
+					<td>16550 寄存器规范，支持 16 字节发送/接收 FIFO，可配置波特率</td>
+			</tr>
+			<tr>
+					<td><code>0x2000_0000</code> - <code>0x2000_0FFF</code></td>
+					<td>BRAM（Boot ROM）</td>
+					<td>4KB</td>
+					<td>片上启动存储器，PC 复位向量地址</td>
+			</tr>
+			<tr>
+					<td><code>0x3000_0000</code> - <code>0x37FF_FFFF</code></td>
+					<td>SPI Flash</td>
+					<td>128MB</td>
+					<td>外部非易失性存储，存放应用程序固件镜像</td>
+			</tr>
+			<tr>
+					<td><code>0x8000_0000</code> - <code>0x9FFF_FFFF</code></td>
+					<td>PSRAM / DDR</td>
+					<td>512MB</td>
+					<td>外部主内存，应用程序运行空间</td>
+			</tr>
+	</tbody>
+</table>
+<p>UART 外设实现 16550 兼容的寄存器映射：</p>
+<table>
+	<thead>
+			<tr>
+					<th>偏移</th>
+					<th>名称</th>
+					<th>读写</th>
+					<th>功能</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>0x00</code></td>
+					<td>TX/RX DATA</td>
+					<td>W/R</td>
+					<td>发送/接收数据寄存器</td>
+			</tr>
+			<tr>
+					<td><code>0x04</code></td>
+					<td>INT EN</td>
+					<td>R/W</td>
+					<td>中断使能控制</td>
+			</tr>
+			<tr>
+					<td><code>0x08</code></td>
+					<td>FIFO STATUS</td>
+					<td>R</td>
+					<td>FIFO 状态（发送空/接收满等）</td>
+			</tr>
+			<tr>
+					<td><code>0x0C</code></td>
+					<td>LINE CTRL</td>
+					<td>R/W</td>
+					<td>线控（数据位宽、停止位、波特率分频）</td>
+			</tr>
+	</tbody>
+</table>
+<p>在 50MHz 系统时钟下，115200 波特率对应的分频系数约为 434。通信格式为 1 起始位 + 8 数据位 + 1 停止位，无校验位。</p>
+<h2 id="fpga-实现与系统综合指标">FPGA 实现与系统综合指标<a href="#fpga-实现与系统综合指标" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="硬件平台与开发环境">硬件平台与开发环境<a href="#硬件平台与开发环境" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li><strong>硬件载体</strong>：Xilinx Artix-7 FPGA (<code>XC7A35T-1FTG256C</code>)</li>
+<li><strong>开发环境</strong>：AMD Vivado — IP Integrator (Block Design) + Synthesis + Implementation + Hardware Manager</li>
+<li><strong>HDL 语言</strong>：Verilog HDL</li>
+<li><strong>总线协议</strong>：AXI4 / AXI4-Lite</li>
+<li><strong>验证方式</strong>：Verilator 仿真 + NEMU 差分测试 + SDB 调试 + FPGA 板级实测</li>
+</ul>
+<h3 id="vivado-block-design-系统集成">Vivado Block Design 系统集成<a href="#vivado-block-design-系统集成" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p><img src="assets/SoC%E8%AE%BE%E8%AE%A1%E5%9B%BE.png" alt="SoC设计图">
+基于 Vivado IP Integrator 图形化平台搭建 SoC 异构系统，通过 Block Design 方式自动处理 AXI 总线互联、时钟同步、地址映射与复位信号控制：</p>
+<table>
+	<thead>
+			<tr>
+					<th>IP 模块</th>
+					<th>功能</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>Clock Wizard</strong></td>
+					<td>生成系统时钟、AXI 总线时钟、DDR 控制器时钟等多路内部时钟</td>
+			</tr>
+			<tr>
+					<td><strong>Processor System Reset</strong></td>
+					<td>外部复位信号同步化，生成 AXI 互联复位与外设复位</td>
+			</tr>
+			<tr>
+					<td><strong>AXI SmartConnect</strong></td>
+					<td>多路从设备自动仲裁与路由</td>
+			</tr>
+			<tr>
+					<td><strong>AXI BRAM Controller</strong></td>
+					<td>4KB 片上 BRAM 作为 Boot ROM，复位向量 <code>0x2000_0000</code></td>
+			</tr>
+			<tr>
+					<td><strong>AXI Quad SPI</strong></td>
+					<td>外部 SPI Flash 存储器映射访问（<code>0x3000_0000</code>）</td>
+			</tr>
+			<tr>
+					<td><strong>MIG 7 Series</strong></td>
+					<td>DDR/PSRAM 内存控制器接口（<code>0x8000_0000</code>）</td>
+			</tr>
+			<tr>
+					<td><strong>AXI UART16550</strong></td>
+					<td>串行通信外设（<code>0x1000_0000</code>）</td>
+			</tr>
+	</tbody>
+</table>
+<p>CPU 作为 AXI Master，IFU（指令取指）与 LSU（数据读写）的访存请求统一经 AXI SmartConnect 进行仲裁与路由，实现了标准化的多级存储 SoC 架构。</p>
+<h3 id="synthesis-与-implementation-流程">Synthesis 与 Implementation 流程<a href="#synthesis-与-implementation-流程" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ol>
+<li><strong>RTL 综合（Synthesis）</strong>：将 Verilog 硬件描述转换为门级网表，全语法检查通过</li>
+<li><strong>布局布线（Implementation）</strong>：将网表映射至 XC7A35T 芯片的物理 Slice 与布线通道</li>
+<li><strong>比特流生成（Bitstream）</strong>：生成 <code>.bit</code> 格式硬件配置文件</li>
+<li><strong>JTAG 烧录</strong>：通过 Vivado Hardware Manager 经 JTAG 接口下载至 FPGA</li>
+<li><strong>固件固化</strong>：将应用程序 <code>.bin/.mcs</code> 镜像烧录至 SPI Flash，实现掉电不丢失、上电自动加载</li>
+</ol>
+<h3 id="核心运行指标">核心运行指标<a href="#核心运行指标" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="主频性能">主频性能<a href="#主频性能" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>稳定运行于 <strong>50 MHz</strong> 时钟频率下（时钟周期 20 ns）。</p>
+<h4 id="资源利用率极低面积开销">资源利用率（极低面积开销）<a href="#资源利用率极低面积开销" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<table>
+	<thead>
+			<tr>
+					<th>资源类型</th>
+					<th>利用率</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>Slice LUTs</strong></td>
+					<td><strong>6.17%</strong></td>
+			</tr>
+			<tr>
+					<td>Slice Registers (FF)</td>
+					<td>低</td>
+			</tr>
+			<tr>
+					<td>Block RAM (BRAM)</td>
+					<td>低</td>
+			</tr>
+			<tr>
+					<td>DSP Slices</td>
+					<td>低</td>
+			</tr>
+	</tbody>
+</table>
+<p>逻辑极度精简，为 DSA（领域专用架构）扩展、Cache 添加、多级流水线等后续演进留有巨大空间。</p>
+<p><img src="assets/%E8%B5%84%E6%BA%90%E4%BD%BF%E7%94%A8%E6%8A%A5%E5%91%8A.png" alt="资源使用报告"></p>
+<h4 id="功耗表现">功耗表现<a href="#功耗表现" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<table>
+	<thead>
+			<tr>
+					<th>功耗类型</th>
+					<th>数值</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>总功耗（Total On-Chip Power）</strong></td>
+					<td><strong>0.992 W</strong></td>
+			</tr>
+			<tr>
+					<td>动态功耗（Dynamic Power）</td>
+					<td>0.847 W（约 85.4%）</td>
+			</tr>
+			<tr>
+					<td>静态功耗（Device Static）</td>
+					<td>约 0.145 W（约 14.6%）</td>
+			</tr>
+			<tr>
+					<td>结温（Junction Temperature）</td>
+					<td>远低于硬件限制</td>
+			</tr>
+	</tbody>
+</table>
+<p>动态功耗主要来自时钟网络翻转、AXI 总线信号切换及 BRAM 访存活动。无异常功耗热点。</p>
+<p><img src="assets/%E5%8A%9F%E8%80%97%E6%8A%A5%E5%91%8A.png" alt="功耗报告"></p>
+<h4 id="静态时序分析sta">静态时序分析（STA）<a href="#静态时序分析sta" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<table>
+	<thead>
+			<tr>
+					<th>时序指标</th>
+					<th>数值</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>Worst Negative Slack (WNS)</strong></td>
+					<td><strong>+3.138 ns</strong></td>
+			</tr>
+			<tr>
+					<td><strong>Total Negative Slack (TNS)</strong></td>
+					<td><strong>0.000 ns</strong></td>
+			</tr>
+			<tr>
+					<td>Timing Violations</td>
+					<td><strong>0（全网无违例）</strong></td>
+			</tr>
+	</tbody>
+</table>
+<ul>
+<li>最坏延迟路径源端为系统时钟（周期 10.000 ns），终点为存储控制器物理层复位端</li>
+<li>该路径实际总延迟仅 <strong>1.862 ns</strong>（逻辑延迟 0.751 ns + 布线延迟 1.111 ns）</li>
+<li>WNS = 10.000 ns - 1.862 ns = <strong>+3.138 ns</strong>，建立时间裕量极其充足</li>
+<li>TNS = 0 意味着全部路径均满足时序约束，无任何违例点</li>
+</ul>
+<p><img src="assets/%E6%97%B6%E5%BA%8F%E6%8A%A5%E5%91%8A.png" alt="时序报告"></p>
+<h3 id="板级功能验证">板级功能验证<a href="#板级功能验证" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li>成功通过烧录 <code>.bit</code> 配置文件至 FPGA</li>
+<li>离线完成 SPI Flash 固件固化（<code>.mcs</code> 镜像写入），实现掉电不丢失</li>
+<li>上电自动引导：BRAM Bootloader → SPI Flash 程序搬运 → PSRAM 执行</li>
+<li>UART 串口 <strong>115200 bps</strong> 连续无错输出启动日志与运行信息
+成功运行程序输出串口打印。</li>
+</ul>
+<p><img src="assets/%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%E5%9B%BE.png" alt="系统运行图"></p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

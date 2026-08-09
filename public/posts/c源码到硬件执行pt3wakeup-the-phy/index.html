@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1314&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>C 源码到硬件执行Pt3——Wakeup the PHY :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="本文拆解了链接脚本（Linker Script）如何通过 LMA 与 VMA 的地址解耦，化解 Flash 只读与 RAM 易失的物理矛盾；透视启动代码（Startup Code）在进入 main 函数前，如何通过栈指针建立、.data 段搬运与 .bss 段清零，完成从静态数据到运行时内存的冷启动。" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="http://localhost:1314/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/code.min.c4581949edab7810737609fc5568852bcd908945f14561e366dcd2300a370545.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/syntax.min.a2cc694a9b481f15d41722bffc2cc54eea4c4f74fd9072b0b33253604c22606e.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="http://localhost:1314/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1314/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="C 源码到硬件执行Pt3——Wakeup the PHY">
+<meta property="og:description" content="本文拆解了链接脚本（Linker Script）如何通过 LMA 与 VMA 的地址解耦，化解 Flash 只读与 RAM 易失的物理矛盾；透视启动代码（Startup Code）在进入 main 函数前，如何通过栈指针建立、.data 段搬运与 .bss 段清零，完成从静态数据到运行时内存的冷启动。" />
+<meta property="og:url" content="http://localhost:1314/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="http://localhost:1314/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+  <meta property="article:section" content="底层原理" />
+
+
+  <meta property="article:published_time" content="2026-03-19 19:44:21 &#43;0800 CST" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1314/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/">作品集</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/" >作品集</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1314/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/">C 源码到硬件执行Pt3——Wakeup the PHY</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2026-03-19</time></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="http://localhost:1314/tags/c%E8%AF%AD%E8%A8%80/">C语言</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/%E7%BC%96%E8%AF%91%E5%99%A8/">编译器</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/%E9%93%BE%E6%8E%A5/">链接</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#第一部分程序真正的入口">第一部分：程序真正的入口</a>
+      <ul>
+        <li><a href="#链接脚本的真身">链接脚本的真身</a></li>
+        <li><a href="#entry指令">ENTRY指令</a></li>
+      </ul>
+    </li>
+    <li><a href="#第二部分双面龟--lma-vs-vma">第二部分：双面龟 —— LMA vs VMA</a>
+      <ul>
+        <li><a href="#什么是vma与lma">什么是VMA与LMA？</a></li>
+        <li><a href="#为什么我们需要lma与vma">为什么我们需要LMA与VMA</a></li>
+      </ul>
+    </li>
+    <li><a href="#第三部分一些简单的ld语法">第三部分：一些简单的ld语法</a>
+      <ul>
+        <li><a href="#符号定义">符号定义</a></li>
+        <li><a href="#定位计数器--the-location-counter">定位计数器 <code>.</code> (The Location Counter)</a></li>
+        <li><a href="#memory-指令">MEMORY 指令</a></li>
+        <li><a href="#sections-基础">SECTIONS 基础</a></li>
+        <li><a href="#provide-关键字">PROVIDE 关键字</a></li>
+        <li><a href="#keep-关键字">KEEP 关键字</a></li>
+      </ul>
+    </li>
+    <li><a href="#第四部分at语法">第四部分：AT语法</a>
+      <ul>
+        <li><a href="#在-elf-文件里这如何体现">在 ELF 文件里，这如何体现？</a></li>
+        <li><a href="#为什么-bss-没有-at">为什么 <code>.bss</code> 没有 AT()？</a></li>
+        <li><a href="#startup-code-的责任">Startup Code 的责任</a></li>
+      </ul>
+    </li>
+    <li><a href="#第五部分裸机启动环境">第五部分：裸机启动环境</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#第六部分现代linux的变奏">第六部分：现代Linux的变奏</a>
+      <ul>
+        <li><a href="#linux-用户态的启动流程">Linux 用户态的启动流程</a></li>
+      </ul>
+    </li>
+    <li><a href="#总结">总结</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h2 id="第一部分程序真正的入口">第一部分：程序真正的入口<a href="#第一部分程序真正的入口" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>在Pt3之前，我们已经成功构建了一幅逻辑内存模型的全景图，但是如果需要让我们的机器成功执行这个程序，我们必须完成从“逻辑”到“物理”的映射：我们需要思考如何把这些逻辑内存里面的东西装载到物理内存里面，然后让CPU上电执行，我们需要根据不同数据段的特性把程序放到不同的RAM，ROM中。</p>
+<p>这便引出了链接脚本的两个核心使命：<strong>描述程序在物理空间中的布局</strong>，以及<strong>定义程序执行的起点</strong>。</p>
+<h3 id="链接脚本的真身">链接脚本的真身<a href="#链接脚本的真身" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在链接脚本中，<code>ENTRY</code> 指令是定义程序执行起点的核心工具。以 x86_64 Linux 为例，通过 <code>gcc -Wl,--verbose</code> 可以观察到 GNU ld 使用的内部默认脚本：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>:~$ gcc -Wl,--verbose hello.c -o hello
+</span></span><span style="display:flex;"><span>GNU ld <span style="color:#f92672">(</span>GNU Binutils <span style="color:#66d9ef">for</span> Ubuntu<span style="color:#f92672">)</span> 2.38
+</span></span><span style="display:flex;"><span>  支持的仿真：
+</span></span><span style="display:flex;"><span>   elf_x86_64
+</span></span><span style="display:flex;"><span>   elf32_x86_64
+</span></span><span style="display:flex;"><span>   elf_i386
+</span></span><span style="display:flex;"><span>   elf_iamcu
+</span></span><span style="display:flex;"><span>   elf_l1om
+</span></span><span style="display:flex;"><span>   elf_k1om
+</span></span><span style="display:flex;"><span>   i386pep
+</span></span><span style="display:flex;"><span>   i386pe
+</span></span><span style="display:flex;"><span>使用内部链接脚本：
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==================================================</span>
+</span></span><span style="display:flex;"><span>/* Script <span style="color:#66d9ef">for</span> -pie -z combreloc -z separate-code -z relro -z now */
+</span></span><span style="display:flex;"><span>/* Copyright <span style="color:#f92672">(</span>C<span style="color:#f92672">)</span> 2014-2022 Free Software Foundation, Inc.
+</span></span><span style="display:flex;"><span>   Copying and distribution of this script, with or without modification,
+</span></span><span style="display:flex;"><span>   are permitted in any medium without royalty provided the copyright
+</span></span><span style="display:flex;"><span>   notice and this notice are preserved.  */
+</span></span><span style="display:flex;"><span>OUTPUT_FORMAT<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;elf64-x86-64&#34;</span>, <span style="color:#e6db74">&#34;elf64-x86-64&#34;</span>,
+</span></span><span style="display:flex;"><span>	      <span style="color:#e6db74">&#34;elf64-x86-64&#34;</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>OUTPUT_ARCH<span style="color:#f92672">(</span>i386:x86-64<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>ENTRY<span style="color:#f92672">(</span>_start<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/local/lib/x86_64-linux-gnu&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/lib/x86_64-linux-gnu&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/lib/x86_64-linux-gnu&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/lib/x86_64-linux-gnu64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/local/lib64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/lib64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/lib64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/local/lib&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/lib&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/lib&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/x86_64-linux-gnu/lib64&#34;</span><span style="color:#f92672">)</span>; SEARCH_DIR<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;=/usr/x86_64-linux-gnu/lib&#34;</span><span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>SECTIONS
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  PROVIDE <span style="color:#f92672">(</span>__executable_start <span style="color:#f92672">=</span> SEGMENT_START<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;text-segment&#34;</span>, 0<span style="color:#f92672">))</span>; . <span style="color:#f92672">=</span> SEGMENT_START<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;text-segment&#34;</span>, 0<span style="color:#f92672">)</span> + SIZEOF_HEADERS;
+</span></span><span style="display:flex;"><span>  .interp         : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.interp<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .note.gnu.build-id  : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.note.gnu.build-id<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .hash           : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.hash<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gnu.hash       : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.hash<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .dynsym         : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.dynsym<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .dynstr         : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.dynstr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gnu.version    : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.version<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gnu.version_d  : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.version_d<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gnu.version_r  : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.version_r<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .rela.dyn       :
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.init<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.text .rela.text.* .rela.gnu.linkonce.t.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.fini<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.data .rela.data.* .rela.gnu.linkonce.d.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.ctors<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.dtors<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.got<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.ldata .rela.ldata.* .rela.gnu.linkonce.l.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.lbss .rela.lbss.* .rela.gnu.linkonce.lb.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.lrodata .rela.lrodata.* .rela.gnu.linkonce.lr.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.ifunc<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .rela.plt       :
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.plt<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>      *<span style="color:#f92672">(</span>.rela.iplt<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .relr.dyn : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.relr.dyn<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span>;
+</span></span><span style="display:flex;"><span>  .init           :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT_NONE<span style="color:#f92672">(</span>.init<span style="color:#f92672">)))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .plt            : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.plt<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.iplt<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>.plt.got        : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.plt.got<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>.plt.sec        : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.plt.sec<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .text           :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.text.unlikely .text.*_unlikely .text.unlikely.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.text.exit .text.exit.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.text.startup .text.startup.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.text.hot .text.hot.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>SORT<span style="color:#f92672">(</span>.text.sorted.*<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.text .stub .text.* .gnu.linkonce.t.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    /* .gnu.warning sections are handled specially by elf.em.  */
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.gnu.warning<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .fini           :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT_NONE<span style="color:#f92672">(</span>.fini<span style="color:#f92672">)))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  PROVIDE <span style="color:#f92672">(</span>__etext <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  PROVIDE <span style="color:#f92672">(</span>_etext <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  PROVIDE <span style="color:#f92672">(</span>etext <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span>;
+</span></span><span style="display:flex;"><span>  /* Adjust the address <span style="color:#66d9ef">for</span> the rodata segment.  We want to adjust up to
+</span></span><span style="display:flex;"><span>     the same address within the page on the next page up.  */
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> SEGMENT_START<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;rodata-segment&#34;</span>, ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span> + <span style="color:#f92672">(</span>. &amp; <span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">)</span> - 1<span style="color:#f92672">)))</span>;
+</span></span><span style="display:flex;"><span>  .rodata         : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.rodata .rodata.* .gnu.linkonce.r.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .rodata1        : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.rodata1<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .eh_frame_hdr   : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.eh_frame_hdr<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.eh_frame_entry .eh_frame_entry.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .eh_frame       : ONLY_IF_RO <span style="color:#f92672">{</span> KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.eh_frame<span style="color:#f92672">))</span> *<span style="color:#f92672">(</span>.eh_frame.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gcc_except_table   : ONLY_IF_RO <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gcc_except_table .gcc_except_table.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gnu_extab   : ONLY_IF_RO <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu_extab*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* These sections are generated by the Sun/Oracle C++ compiler.  */
+</span></span><span style="display:flex;"><span>  .exception_ranges   : ONLY_IF_RO <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.exception_ranges*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* Adjust the address <span style="color:#66d9ef">for</span> the data segment.  We want to adjust up to
+</span></span><span style="display:flex;"><span>     the same address within the page on the next page up.  */
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> DATA_SEGMENT_ALIGN <span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">)</span>, CONSTANT <span style="color:#f92672">(</span>COMMONPAGESIZE<span style="color:#f92672">))</span>;
+</span></span><span style="display:flex;"><span>  /* Exception handling  */
+</span></span><span style="display:flex;"><span>  .eh_frame       : ONLY_IF_RW <span style="color:#f92672">{</span> KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.eh_frame<span style="color:#f92672">))</span> *<span style="color:#f92672">(</span>.eh_frame.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gnu_extab      : ONLY_IF_RW <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu_extab<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gcc_except_table   : ONLY_IF_RW <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gcc_except_table .gcc_except_table.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .exception_ranges   : ONLY_IF_RW <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.exception_ranges*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* Thread Local Storage sections  */
+</span></span><span style="display:flex;"><span>  .tdata	  :
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>     PROVIDE_HIDDEN <span style="color:#f92672">(</span>__tdata_start <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>     *<span style="color:#f92672">(</span>.tdata .tdata.* .gnu.linkonce.td.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .tbss		  : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.tbss .tbss.* .gnu.linkonce.tb.*<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.tcommon<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .preinit_array    :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__preinit_array_start <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.preinit_array<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__preinit_array_end <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .init_array    :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__init_array_start <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT_BY_INIT_PRIORITY<span style="color:#f92672">(</span>.init_array.*<span style="color:#f92672">)</span> SORT_BY_INIT_PRIORITY<span style="color:#f92672">(</span>.ctors.*<span style="color:#f92672">)))</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.init_array EXCLUDE_FILE <span style="color:#f92672">(</span>*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o <span style="color:#f92672">)</span> .ctors<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__init_array_end <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .fini_array    :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__fini_array_start <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT_BY_INIT_PRIORITY<span style="color:#f92672">(</span>.fini_array.*<span style="color:#f92672">)</span> SORT_BY_INIT_PRIORITY<span style="color:#f92672">(</span>.dtors.*<span style="color:#f92672">)))</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.fini_array EXCLUDE_FILE <span style="color:#f92672">(</span>*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o <span style="color:#f92672">)</span> .dtors<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>    PROVIDE_HIDDEN <span style="color:#f92672">(</span>__fini_array_end <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .ctors          :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    /* gcc uses crtbegin.o to find the start of
+</span></span><span style="display:flex;"><span>       the constructors, so we make sure it is
+</span></span><span style="display:flex;"><span>       first.  Because this is a wildcard, it
+</span></span><span style="display:flex;"><span>       doesn<span style="color:#e6db74">&#39;t matter if the user does not
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       actually link against crtbegin.o; the
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       linker won&#39;</span>t look <span style="color:#66d9ef">for</span> a file to match a
+</span></span><span style="display:flex;"><span>       wildcard.  The wildcard also means that it
+</span></span><span style="display:flex;"><span>       doesn<span style="color:#e6db74">&#39;t matter which directory crtbegin.o
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       is in.  */
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    KEEP (*crtbegin.o(.ctors))
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    KEEP (*crtbegin?.o(.ctors))
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    /* We don&#39;</span>t want to include the .ctor section from
+</span></span><span style="display:flex;"><span>       the crtend.o file <span style="color:#66d9ef">until</span> after the sorted ctors.
+</span></span><span style="display:flex;"><span>       The .ctor section from the crtend file contains the
+</span></span><span style="display:flex;"><span>       end of ctors marker and it must be last */
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>EXCLUDE_FILE <span style="color:#f92672">(</span>*crtend.o *crtend?.o <span style="color:#f92672">)</span> .ctors<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT<span style="color:#f92672">(</span>.ctors.*<span style="color:#f92672">)))</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.ctors<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .dtors          :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*crtbegin.o<span style="color:#f92672">(</span>.dtors<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*crtbegin?.o<span style="color:#f92672">(</span>.dtors<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>EXCLUDE_FILE <span style="color:#f92672">(</span>*crtend.o *crtend?.o <span style="color:#f92672">)</span> .dtors<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>SORT<span style="color:#f92672">(</span>.dtors.*<span style="color:#f92672">)))</span>
+</span></span><span style="display:flex;"><span>    KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.dtors<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .jcr            : <span style="color:#f92672">{</span> KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.jcr<span style="color:#f92672">))</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .data.rel.ro : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .dynamic        : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.dynamic<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .got            : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.got.plt<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.igot.plt<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.got<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.igot<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> DATA_SEGMENT_RELRO_END <span style="color:#f92672">(</span>0, .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  .data           :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.data .data.* .gnu.linkonce.d.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    SORT<span style="color:#f92672">(</span>CONSTRUCTORS<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .data1          : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.data1<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  _edata <span style="color:#f92672">=</span> .; PROVIDE <span style="color:#f92672">(</span>edata <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> .;
+</span></span><span style="display:flex;"><span>  __bss_start <span style="color:#f92672">=</span> .;
+</span></span><span style="display:flex;"><span>  .bss            :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>   *<span style="color:#f92672">(</span>.dynbss<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>   *<span style="color:#f92672">(</span>.bss .bss.* .gnu.linkonce.b.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>   *<span style="color:#f92672">(</span>COMMON<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>   /* Align here to ensure that the .bss section occupies space up to
+</span></span><span style="display:flex;"><span>      _end.  Align after .bss to ensure correct alignment even <span style="color:#66d9ef">if</span> the
+</span></span><span style="display:flex;"><span>      .bss section disappears because there are no input sections.
+</span></span><span style="display:flex;"><span>      FIXME: Why <span style="color:#66d9ef">do</span> we need it? When there is no .bss section, we <span style="color:#66d9ef">do</span> not
+</span></span><span style="display:flex;"><span>      pad the .data section.  */
+</span></span><span style="display:flex;"><span>   . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span>. !<span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> ? <span style="color:#ae81ff">64</span> / <span style="color:#ae81ff">8</span> : 1<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .lbss   :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.dynlbss<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.lbss .lbss.* .gnu.linkonce.lb.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>LARGE_COMMON<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span><span style="color:#ae81ff">64</span> / 8<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> SEGMENT_START<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;ldata-segment&#34;</span>, .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  .lrodata   ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span> + <span style="color:#f92672">(</span>. &amp; <span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">)</span> - 1<span style="color:#f92672">))</span> :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.lrodata .lrodata.* .gnu.linkonce.lr.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .ldata   ALIGN<span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">))</span> + <span style="color:#f92672">(</span>. &amp; <span style="color:#f92672">(</span>CONSTANT <span style="color:#f92672">(</span>MAXPAGESIZE<span style="color:#f92672">)</span> - 1<span style="color:#f92672">))</span> :
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    *<span style="color:#f92672">(</span>.ldata .ldata.* .gnu.linkonce.l.*<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span>. !<span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> ? <span style="color:#ae81ff">64</span> / <span style="color:#ae81ff">8</span> : 1<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> ALIGN<span style="color:#f92672">(</span><span style="color:#ae81ff">64</span> / 8<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  _end <span style="color:#f92672">=</span> .; PROVIDE <span style="color:#f92672">(</span>end <span style="color:#f92672">=</span> .<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  . <span style="color:#f92672">=</span> DATA_SEGMENT_END <span style="color:#f92672">(</span>.<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>  /* Stabs debugging sections.  */
+</span></span><span style="display:flex;"><span>  .stab          <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .stabstr       <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stabstr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .stab.excl     <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab.excl<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .stab.exclstr  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab.exclstr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .stab.index    <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab.index<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .stab.indexstr <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.stab.indexstr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .comment       <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.comment<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gnu.build.attributes : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.gnu.build.attributes .gnu.build.attributes.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* DWARF debug sections.
+</span></span><span style="display:flex;"><span>     Symbols in the DWARF debugging sections are relative to the beginning
+</span></span><span style="display:flex;"><span>     of the section so we begin them at 0.  */
+</span></span><span style="display:flex;"><span>  /* DWARF 1.  */
+</span></span><span style="display:flex;"><span>  .debug          <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .line           <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.line<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* GNU DWARF <span style="color:#ae81ff">1</span> extensions.  */
+</span></span><span style="display:flex;"><span>  .debug_srcinfo  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_srcinfo<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_sfnames  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_sfnames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* DWARF 1.1 and DWARF 2.  */
+</span></span><span style="display:flex;"><span>  .debug_aranges  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_aranges<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_pubnames <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_pubnames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* DWARF 2.  */
+</span></span><span style="display:flex;"><span>  .debug_info     <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_info .gnu.linkonce.wi.*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_abbrev   <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_abbrev<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_line     <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_line .debug_line.* .debug_line_end<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_frame    <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_frame<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_str      <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_str<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_loc      <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_loc<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_macinfo  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_macinfo<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* SGI/MIPS DWARF <span style="color:#ae81ff">2</span> extensions.  */
+</span></span><span style="display:flex;"><span>  .debug_weaknames <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_weaknames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_funcnames <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_funcnames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_typenames <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_typenames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_varnames  <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_varnames<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* DWARF 3.  */
+</span></span><span style="display:flex;"><span>  .debug_pubtypes <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_pubtypes<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_ranges   <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_ranges<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /* DWARF 5.  */
+</span></span><span style="display:flex;"><span>  .debug_addr     <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_addr<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_line_str <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_line_str<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_loclists <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_loclists<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_macro    <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_macro<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_names    <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_names<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_rnglists <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_rnglists<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_str_offsets <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_str_offsets<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .debug_sup      <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.debug_sup<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  .gnu.attributes <span style="color:#ae81ff">0</span> : <span style="color:#f92672">{</span> KEEP <span style="color:#f92672">(</span>*<span style="color:#f92672">(</span>.gnu.attributes<span style="color:#f92672">))</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  /DISCARD/ : <span style="color:#f92672">{</span> *<span style="color:#f92672">(</span>.note.GNU-stack<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.gnu_debuglink<span style="color:#f92672">)</span> *<span style="color:#f92672">(</span>.gnu.lto_*<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==================================================</span>
+</span></span></code></pre></div><h4 id="关键结构以-x86_64-linux-为例">关键结构（以 x86_64 Linux 为例）<a href="#关键结构以-x86_64-linux-为例" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这个链接文件看起来很长是不是，是这样的，完善的东西往往就是复杂的，让我把它删减一下，默认脚本大概的意思是这样的：</p>
+<pre tabindex="0"><code>OUTPUT_FORMAT(&#34;elf64-x86-64&#34;)
+OUTPUT_ARCH(i386:x86-64)
+ENTRY(_start)
+
+SECTIONS
+{
+  . = 0x400000;
+
+  .text :
+  {
+    *(.text*)
+  }
+
+  .rodata :
+  {
+    *(.rodata*)
+  }
+
+  .data :
+  {
+    *(.data*)
+  }
+
+  .bss :
+  {
+    *(.bss*)
+    *(COMMON)
+  }
+}
+</code></pre><p>当然真实脚本复杂得多，但核心结构就是这样。</p>
+<p>我们可以先来看看这三个顶层指令-&gt;</p>
+<h5 id="output_format">OUTPUT_FORMAT<a href="#output_format" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<pre tabindex="0"><code>OUTPUT_FORMAT(&#34;elf64-x86-64&#34;)
+</code></pre><p>告诉链接器：</p>
+<blockquote>
+<p>生成什么格式的 ELF</p>
+</blockquote>
+<p>这和目标架构绑定。</p>
+<h5 id="output_arch">OUTPUT_ARCH<a href="#output_arch" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<pre tabindex="0"><code>OUTPUT_ARCH(i386:x86-64)
+</code></pre><p>指定 CPU 架构。</p>
+<h5 id="entry_start">ENTRY(_start)<a href="#entry_start" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p><strong>告诉链接器：程序的执行起点在哪里。</strong></p>
+<ul>
+<li><strong>符号绑定</strong>：它指定 <code>_start</code> 这个符号作为整个程序的入口地址。</li>
+<li><strong>写入文件头</strong>：链接器会将 <code>_start</code> 对应的 <strong>VMA（运行地址）</strong> 写入 ELF 文件头的 <code>e_entry</code> 字段中。</li>
+<li><strong>启动逻辑</strong>：
+<ul>
+<li><strong>在 Linux 中</strong>：当你运行 <code>./a.out</code> 时，内核加载器会读取这个 <code>e_entry</code> 地址，并将 CPU 的指令指针（PC/RIP）跳转到那里开始执行。</li>
+<li><strong>在裸机中</strong>：虽然硬件上电通常跳转到固定的物理地址，但 <code>ENTRY</code> 指令依然不可或缺，它能让调试器（如 GDB）准确知道程序从哪开始，同时也方便链接器在进行垃圾回收（&ndash;gc-sections）时，知道 <code>_start</code> 是“根符号”，不应被删除。</li>
+</ul>
+</li>
+</ul>
+<h3 id="entry指令">ENTRY指令<a href="#entry指令" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="entry_start-到底在干什么">ENTRY(_start) 到底在干什么？<a href="#entry_start-到底在干什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在链接脚本里：</p>
+<pre tabindex="0"><code>ENTRY(_start)
+</code></pre><p>它的作用只有一句话：</p>
+<blockquote>
+<p>把 ELF Header 里的 <code>e_entry</code> 字段设置为符号 <code>_start</code> 的地址。</p>
+</blockquote>
+<p>也就是说：</p>
+<ul>
+<li>它不生成代码</li>
+<li>它不改变 section 布局</li>
+<li>它不影响 reset 向量</li>
+<li>它只是指定“程序入口符号”</li>
+</ul>
+<p>你可以验证：</p>
+<pre tabindex="0"><code>readelf -h hello
+</code></pre><p>会看到：</p>
+<pre tabindex="0"><code>Entry point address: 0xXXXX
+</code></pre><p>这个地址就是 <code>_start</code> 的 VMA。关于什么是VMA和LMA我们在下文会又比较详细的描述，在这里你可以理解为程序在内存的地址。</p>
+<hr>
+<h4 id="那-_start-是什么">那 <code>_start</code> 是什么？<a href="#那-_start-是什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>无论是在 Linux 还是裸机（Bare-metal）中，<code>_start</code> 的任务都是为了给 <code>main</code> 铺路。它通常是一段汇编代码，干的事情非常原始：</p>
+<h5 id="在-linux-环境下">在 Linux 环境下：<a href="#在-linux-环境下" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<ol>
+<li><strong>从栈上获取信息</strong>：当 Linux 内核启动程序后，它会把 <code>argc</code>、<code>argv</code> 和环境变量压入栈。<code>_start</code> 负责把这些数据从栈里掏出来。</li>
+<li><strong>初始化 C 库</strong>：调用 <code>__libc_csu_init</code> 之类的逻辑，初始化全局构造函数（比如那些带 <code>__attribute__((constructor))</code> 的函数）。</li>
+<li><strong>把球踢给 <code>main</code></strong>：调用 <code>__libc_start_main</code>，这才是真正调 <code>main</code> 的地方。</li>
+<li><strong>清理现场</strong>：当 <code>main</code> 返回后，<code>_start</code> 会调用 <code>exit</code> 系统调用来彻底杀死进程。</li>
+</ol>
+<h5 id="在裸机环境下risc-v-为例">在裸机环境下（RISC-V 为例）：<a href="#在裸机环境下risc-v-为例" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<ol>
+<li><strong>设置 SP 指针</strong>：<code>la sp, _stack_top</code>。这是第一件大事，有了栈，C 代码才能运行。</li>
+<li><strong>全局指针初始化</strong>：设置 <code>gp</code> 寄存器（RISC-V 特有），加速全局变量访问。</li>
+<li><strong>搬运与清零</strong>：
+<ul>
+<li>把 <code>.data</code> 段从 Flash 拷贝到 RAM。</li>
+<li>把 <code>.bss</code> 段全部抹成 0。</li>
+</ul>
+</li>
+<li><strong>跳转到 main</strong>：<code>call main</code>。</li>
+</ol>
+<h5 id="_start长什么样">_start长什么样：<a href="#_start长什么样" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>我们可以通过命令来看看在linux中这个_start代码段长什么样子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>:~$ objdump -d hello | grep -A <span style="color:#ae81ff">10</span> <span style="color:#e6db74">&#34;&lt;_start&gt;:&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0000000000001060</span> &lt;_start&gt;:
+</span></span><span style="display:flex;"><span>    1060:	f3 0f 1e fa          	endbr64 
+</span></span><span style="display:flex;"><span>    1064:	<span style="color:#ae81ff">31</span> ed                	xor    %ebp,%ebp
+</span></span><span style="display:flex;"><span>    1066:	<span style="color:#ae81ff">49</span> <span style="color:#ae81ff">89</span> d1             	mov    %rdx,%r9
+</span></span><span style="display:flex;"><span>    1069:	5e                   	pop    %rsi
+</span></span><span style="display:flex;"><span>    106a:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> e2             	mov    %rsp,%rdx
+</span></span><span style="display:flex;"><span>    106d:	<span style="color:#ae81ff">48</span> <span style="color:#ae81ff">83</span> e4 f0          	and    $0xfffffffffffffff0,%rsp
+</span></span><span style="display:flex;"><span>    1071:	<span style="color:#ae81ff">50</span>                   	push   %rax
+</span></span><span style="display:flex;"><span>    1072:	<span style="color:#ae81ff">54</span>                   	push   %rsp
+</span></span><span style="display:flex;"><span>    1073:	<span style="color:#ae81ff">45</span> <span style="color:#ae81ff">31</span> c0             	xor    %r8d,%r8d
+</span></span><span style="display:flex;"><span>    1076:	<span style="color:#ae81ff">31</span> c9                	xor    %ecx,%ecx
+</span></span></code></pre></div><h4 id="在-linux-中-_start-从哪来">在 Linux 中 <code>_start</code> 从哪来？<a href="#在-linux-中-_start-从哪来" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在Pt1中我们只用gcc将程序编译成可执行文件：</p>
+<pre tabindex="0"><code>gcc hello.c -o hello
+</code></pre><p>即使我们没有告诉他 <code>_start</code> 的内容，程序仍然可以运行。</p>
+<p>因为 GCC 自动链接了：</p>
+<ul>
+<li><code>crt1.o</code></li>
+<li><code>crti.o</code></li>
+<li><code>crtn.o</code></li>
+</ul>
+<p>其中在 <code>crt1.o</code> 里定义了：</p>
+<pre tabindex="0"><code>_start:
+    ...
+    call __libc_start_main
+</code></pre><p>然后：</p>
+<pre tabindex="0"><code>__libc_start_main → 调用 main
+</code></pre><p>所以执行流程是：</p>
+<pre tabindex="0"><code>_start → libc 初始化 → main → exit
+</code></pre><hr>
+<h4 id="在裸机中-_start-是谁">在裸机中 <code>_start</code> 是谁？<a href="#在裸机中-_start-是谁" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在裸机环境里：</p>
+<ul>
+<li>没有 libc</li>
+<li>没有 crt1.o</li>
+<li>没有 loader</li>
+</ul>
+<p>所以你必须自己写 <code>_start</code></p>
+<p>通常是：</p>
+<pre tabindex="0"><code>.section entry
+.global _start
+
+_start:
+    la sp, _stack_top
+    call init_data
+    call zero_bss
+    call main
+loop:
+    j loop
+</code></pre><h4 id="entry-还能写别的吗">ENTRY() 还能写别的吗？<a href="#entry-还能写别的吗" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>理论上是可以的。</p>
+<pre tabindex="0"><code>ENTRY(reset_handler)
+</code></pre><p>或者：</p>
+<pre tabindex="0"><code>ENTRY(main)
+</code></pre><p>只要这个符号存在即可。</p>
+<p>链接器只做一件事：找到这个符号的地址 → 写入 ELF header</p>
+<h4 id="如果不写-entry-会怎样">如果不写 ENTRY() 会怎样？<a href="#如果不写-entry-会怎样" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>ld 有默认规则：</p>
+<p>优先级是：</p>
+<ol>
+<li>命令行 <code>-e symbol</code></li>
+<li>链接脚本 <code>ENTRY(symbol)</code></li>
+<li>查找 <code>_start</code></li>
+<li>查找 <code>start</code></li>
+<li>取 <code>.text</code> 开头</li>
+</ol>
+<p>所以即使你不写 ENTRY：</p>
+<p>如果存在 <code>_start</code>，通常仍然会选它。</p>
+<h4 id="entry--硬件复位地址">ENTRY ≠ 硬件复位地址<a href="#entry--硬件复位地址" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这点非常关键（尤其是对于裸机环境）。</p>
+<p>在 Linux：</p>
+<ul>
+<li>内核读取 ELF header</li>
+<li>跳转到 <code>e_entry</code></li>
+</ul>
+<p>在裸机：</p>
+<p>比如CPU 上电后：</p>
+<ul>
+<li>PC 从固定物理地址开始（例如 0x20000000）</li>
+<li>这与 ELF header 无关</li>
+</ul>
+<p>所以在裸机中：</p>
+<p>如果你把代码烧到 0x20000000
+那 <code>_start</code> 必须刚好位于这个地址</p>
+<p>否则 ENTRY 没意义。</p>
+<h2 id="第二部分双面龟--lma-vs-vma">第二部分：双面龟 —— LMA vs VMA<a href="#第二部分双面龟--lma-vs-vma" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="什么是vma与lma">什么是VMA与LMA？<a href="#什么是vma与lma" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在 ELF 中，每个输出 section 都有两个地址：</p>
+<table>
+	<thead>
+			<tr>
+					<th>名称</th>
+					<th>含义</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>VMA (Virtual Memory Address)</td>
+					<td>程序运行时访问的地址</td>
+			</tr>
+			<tr>
+					<td>LMA (Load Memory Address)</td>
+					<td>程序被加载时存放的地址</td>
+			</tr>
+	</tbody>
+</table>
+<p>默认情况下：</p>
+<pre tabindex="0"><code>VMA == LMA
+</code></pre><p>只有在嵌入式场景下才会分离</p>
+<p>我们可以来看一个简单的脚本片段</p>
+<pre tabindex="0"><code>MEMORY
+{
+  MROM (rx)  : ORIGIN = 0x20000000, LENGTH = 128K
+  SRAM (rwx) : ORIGIN = 0x0f000000, LENGTH = 8K
+}
+</code></pre><p>这一步做的事情是：</p>
+<ul>
+<li>定义两个可分配内存区域</li>
+<li>后续会通过 <code>&gt; MROM</code> 或 <code>&gt; SRAM</code> 来引用它们</li>
+</ul>
+<h3 id="为什么我们需要lma与vma">为什么我们需要LMA与VMA<a href="#为什么我们需要lma与vma" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>要回答这个问题，我们必须跳出 C 语言的逻辑世界，回到<strong>物理硬件的约束</strong>中去。</p>
+<p>简单来说，我们需要 LMA 和 VMA 分离，是因为<strong>有些数据装载时的地址和运行时的地址不是同一个地址。</strong></p>
+<h4 id="flash-只能读ram-才能写的物理矛盾">Flash 只能读，RAM 才能写的物理矛盾<a href="#flash-只能读ram-才能写的物理矛盾" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这是最根本的原因。请看以下这个最简单的全局变量：</p>
+<pre tabindex="0"><code>int count = 100; // 已初始化数据（.data）
+</code></pre><ul>
+<li><strong>断电不能丢（存储需求）</strong>：这个 <code>100</code> 必须烧录在 <strong>Flash</strong> 里。如果它只存在 RAM 里，一断电，你的程序下次启动就不知道 <code>count</code> 初始值是 100 了。</li>
+<li><strong>运行时要改（执行需求）</strong>：程序运行到 <code>count++</code> 时，CPU 必须能写这个内存。但 Flash（ROM）是只读的，CPU 无法直接通过一条指令修改 Flash 里的值。</li>
+</ul>
+<p><strong>矛盾点出现了：</strong> 这个变量在镜像文件中必须位于 Flash 地址（<strong>LMA</strong>），但在程序运行时，它必须位于 RAM 地址（<strong>VMA</strong>）。</p>
+<h4 id="lma-与-vma-的分工">LMA 与 VMA 的分工<a href="#lma-与-vma-的分工" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>为了解决这个矛盾，链接器给 <code>.data</code> 段设置了两套地址：</p>
+<ul>
+<li><strong>LMA (Load Memory Address - 加载地址)</strong>： 这是程序**“躺”在 Flash 里的地址**。它决定了烧录器把数据写到芯片的哪个物理位置。它负责<strong>数据的持久化存储</strong>。</li>
+<li><strong>VMA (Virtual/Runtime Memory Address - 运行地址)</strong>： 这是程序**“跑”在 RAM 里的地址**。编译器生成的指令（比如 <code>load</code> 或 <code>store</code>）里用的就是这个地址。它负责<strong>数据的动态读写</strong>。</li>
+</ul>
+<h4 id="裸机中的典型场景">裸机中的典型场景<a href="#裸机中的典型场景" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>假设你的单片机：</p>
+<ul>
+<li><strong>Flash (MROM)</strong> 范围：<code>0x20000000</code> 开始</li>
+<li><strong>RAM (SRAM)</strong> 范围：<code>0x0F000000</code> 开始</li>
+</ul>
+<p>如果你在链接脚本里强行让 <code>.data</code> 的 LMA 等于 VMA（都放在 Flash 里），那么当你执行 <code>count++</code> 时，CPU 会尝试往 <code>0x2000xxxx</code> 写数据，硬件会直接报错（Bus Fault）。</p>
+<p><strong>正确的做法是分离：</strong></p>
+<ol>
+<li><strong>链接阶段</strong>：告诉链接器，<code>.data</code> 的数据在二进制文件里跟在代码后面（LMA 在 Flash），但指令寻址时要去 RAM 找（VMA 在 RAM）。</li>
+<li><strong>启动阶段</strong>：这就是你在 <code>_start</code> 里要做的事——把那段数据从 Flash 物理地搬运到 RAM 中。</li>
+</ol>
+<h4 id="为什么-text-段通常不需要分离">为什么 <code>.text</code> 段通常不需要分离？<a href="#为什么-text-段通常不需要分离" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>代码段（<code>.text</code>）和常量（<code>.rodata</code>）通常 LMA == VMA。</p>
+<p>因为它们是<strong>只读</strong>的。现代 CPU 普遍支持 <strong>XIP (Execute In Place)</strong>，即直接从 Flash 读取指令并执行。既然不需要写，也就不需要挪地方，直接让它“住在 Flash，工作在 Flash”即可。</p>
+<p>所以如果没有 LMA/VMA 的分离机制：</p>
+<ol>
+<li><strong>全局变量将无法修改</strong>（因为它们只能死在 Flash 里）。</li>
+<li><strong>或者所有数据必须全部预先加载进 RAM</strong>（但 RAM 非常昂贵且容量有限，存不下庞大的代码段）。</li>
+</ol>
+<p><strong>LMA 和 VMA 的存在，本质上是链接器为了在“有限且昂贵的 RAM”与“大容量且廉价的 Flash”之间寻找平衡的一种地址映射手段。</strong></p>
+<h2 id="第三部分一些简单的ld语法">第三部分：一些简单的ld语法<a href="#第三部分一些简单的ld语法" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="符号定义">符号定义<a href="#符号定义" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在链接脚本里，你可以像写 C 语言赋值语句一样定义符号：</p>
+<pre tabindex="0"><code>_stack_top = 0x2000FFFF;
+</code></pre><p><strong>注意</strong>：这只是定义了一个<strong>符号地址</strong>，它不占用任何 Flash 空间。</p>
+<p><strong>C 语言如何调用</strong>：你在 C 代码里写 <code>extern int _stack_top;</code>，那么 <code>&amp;_stack_top</code> 的值就是 <code>0x2000FFFF</code>。</p>
+<h3 id="定位计数器--the-location-counter">定位计数器 <code>.</code> (The Location Counter)<a href="#定位计数器--the-location-counter" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>这是链接脚本中最灵魂的符号。它代表了<strong>当前的虚拟地址（VMA）</strong>。</p>
+<p><strong>特性</strong>：链接器按顺序处理段（Section），处理完一个，<code>.</code> 就会自动往后移动相应的大小。</p>
+<p><strong>手动修改</strong>：你可以通过 <code>. = 0x10000;</code> 强行把地址推到某个特定位置，常用于<strong>对齐（Alignment）</strong>。</p>
+<h3 id="memory-指令">MEMORY 指令<a href="#memory-指令" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>在定义具体的段之前，我们要先告诉链接器：这块芯片到底有多少物理内存。</p>
+<p>代码段</p>
+<pre tabindex="0"><code>MEMORY
+{
+  MROM (rx)  : ORIGIN = 0x20000000, LENGTH = 1M
+  SRAM (rwx) : ORIGIN = 0x0F000000, LENGTH = 64K
+}
+</code></pre><p><strong>r (read)</strong>, <strong>w (write)</strong>, <strong>x (execute)</strong>：这是给内存打的权限标签。</p>
+<p>有了这个，后面我们才能用 <code>&gt; SRAM</code> 这种简洁的语法把段扔进指定的物理区间。</p>
+<h3 id="sections-基础">SECTIONS 基础<a href="#sections-基础" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>这是链接脚本的大头，负责决定哪些输入文件（.o）的哪些段放在输出文件的哪个位置。</p>
+<pre tabindex="0"><code>SECTIONS
+{
+  .text : 
+  { 
+    *(.text)    /* 收集所有输入文件的 .text 段 */
+    *(.rodata)  /* 收集所有输入文件的只读数据 */
+  } &gt; MROM      /* 放入 MROM 区域 */
+}
+</code></pre><p><strong>通配符 <code>\*</code></strong>：代表“所有文件”。</p>
+<p><strong>括号内</strong>：是输入段（Input Section）；<strong>括号外</strong>：是输出段（Output Section）。</p>
+<h3 id="provide-关键字">PROVIDE 关键字<a href="#provide-关键字" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<pre tabindex="0"><code>PROVIDE(end = .);
+</code></pre><p>它的意思是：如果你的 C 代码里没定义 <code>end</code> 这个符号，那就用链接脚本里的这个值；如果你自己定义了，那就以你定义的为准。这是标准库（如 <code>malloc</code> 依赖的 <code>_end</code>）常用的技巧。</p>
+<h3 id="keep-关键字">KEEP 关键字<a href="#keep-关键字" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<pre tabindex="0"><code>KEEP(*(.vectors))
+</code></pre><p>在开启了链接器优化（<code>--gc-sections</code>）时，没有被调用的代码会被删掉。但像<strong>中断向量表</strong>这种硬件自动调用的代码，编译器看不出来它被调用了。加上 <code>KEEP</code> 就能防止它被误删。</p>
+<h2 id="第四部分at语法">第四部分：AT语法<a href="#第四部分at语法" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p><code>AT()</code> 指令是专门用来指定 <strong>LMA（加载地址）</strong> 的。</p>
+<p>在默认情况下，如果你写 <code>.data : { ... } &gt; SRAM</code>，链接器会认为这个段的 VMA 和 LMA 都在 SRAM 里。但这会导致一个严重问题：<strong>烧录器找不到数据该往哪存，因为 SRAM 是掉电即失的，它不能存放二进制镜像。</strong></p>
+<p>于是，我们祭出了这段核心代码：</p>
+<p>代码段</p>
+<pre tabindex="0"><code>. = ORIGIN(SRAM); /* 强制将当前定位符设为 SRAM 起始地址 0x0f000000 */
+
+.data : AT(LOADADDR(.rodata) + SIZEOF(.rodata))
+{
+  _data_start = .; 
+  *(.data*)
+  _data_end = .;
+} &gt; SRAM
+</code></pre><p>这里的逻辑：</p>
+<ol>
+<li><strong>确定运行地址 (<code>&gt; SRAM</code>)</strong>：告诉链接器，<code>.data</code> 里的变量在程序跑起来后，去 <code>0x0f000000</code> 这个位置找。</li>
+<li><strong>标记符号地址 (<code>_data_start = .</code>)</strong>：此时的 <code>.</code> 已经指向了 SRAM，所以这个符号记录的是 <strong>VMA</strong>。</li>
+<li><strong>指定存储位置 (<code>AT(...)</code>)</strong>：这是最核心的计算。
+<ul>
+<li><code>LOADADDR(.rodata)</code>：拿到只读数据段在 ROM 里的起始加载地址。</li>
+<li><code>SIZEOF(.rodata)</code>：拿到只读数据段的大小。</li>
+<li>两者相加，意思就是：<strong>“请把 <code>.data</code> 的初始值，紧紧贴在 ROM 里 <code>.rodata</code> 的屁股后面存着。”</strong></li>
+</ul>
+</li>
+</ol>
+<h3 id="在-elf-文件里这如何体现">在 ELF 文件里，这如何体现？<a href="#在-elf-文件里这如何体现" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>我们可以通过 <code>readelf -l</code> 命令观察编译出的 ELF 文件，你会发现 Program Header 里出现了有趣的现象：</p>
+<p>Plaintext</p>
+<pre tabindex="0"><code>Program Headers:
+  Type           Offset             VirtAddr           PhysAddr
+  LOAD           0x0000000000001000 0x20000000         0x20000000  /* .text &amp; .rodata */
+  LOAD           0x0000000000002000 0x0f000000         0x20000500  /* .data */
+</code></pre><ul>
+<li><strong>VirtAddr (p_vaddr)</strong>：这就是 <strong>VMA</strong>，程序运行时认为自己所在的地址。</li>
+<li><strong>PhysAddr (p_paddr)</strong>：这就是 <strong>LMA</strong>，烧录器真正把数据写进去的地址。</li>
+<li><strong>结论</strong>：在嵌入式中，<code>p_paddr</code> 是烧录地址，<code>p_vaddr</code> 是运行地址。</li>
+</ul>
+<h3 id="为什么-bss-没有-at">为什么 <code>.bss</code> 没有 AT()？<a href="#为什么-bss-没有-at" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>观察你的链接脚本，<code>.bss</code> 通常写得很简单：</p>
+<pre tabindex="0"><code>.bss :
+{
+  *(.bss*)
+} &gt; SRAM
+</code></pre><p><strong>原因很简单：</strong>.bss 段存放的是未初始化的全局变量（默认全为 0）。</p>
+<ul>
+<li>它不需要初始值，所以<strong>不需要在 ROM 里占用任何存储空间</strong>。</li>
+<li>既然 ROM 里没它，它自然就不需要 LMA。</li>
+<li>它只需要在运行时（VMA）在 SRAM 里占个坑，然后由启动代码把它抹成零即可。</li>
+</ul>
+<h3 id="startup-code-的责任">Startup Code 的责任<a href="#startup-code-的责任" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>链接脚本只是画好了“规划图”，它并不会自动搬运数据。如果你的 <code>_start</code> 汇编里没写搬运逻辑，程序一跑就会因为找不到变量初值而崩溃。</p>
+<p>这就是为什么我们需要在 <code>_start</code> 里引用链接脚本导出的符号：</p>
+<ol>
+<li>使用 <code>_data_load_obj</code> (LMA起始) 找到 Flash 里的源头。</li>
+<li>使用 <code>_data_start</code> (VMA起始) 找到 SRAM 里的目的地。</li>
+<li>执行一趟 <code>memcpy</code>。</li>
+</ol>
+<p><strong><code>&gt;</code> 决定 VMA（在哪跑），<code>AT()</code> 决定 LMA（在哪存）。</strong></p>
+<p>如果不写 <code>AT()</code>，链接器默认 <strong>LMA = VMA</strong>。这在 Linux 开发中很常见（因为加载器会自动处理），但在裸机开发中，这往往意味着你的程序无法正常启动。</p>
+<h2 id="第五部分裸机启动环境">第五部分：裸机启动环境<a href="#第五部分裸机启动环境" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h4 id="现在我们可以回到你的-ld-脚本">现在我们可以回到你的 ld 脚本<a href="#现在我们可以回到你的-ld-脚本" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<pre tabindex="0"><code>.text :
+{
+  *(entry)
+  *(.text*)
+} &gt; MROM
+</code></pre><p>这一句做了两件事：</p>
+<ol>
+<li>决定顺序（entry 先放）</li>
+<li>决定地址（从 0x20000000 开始）</li>
+</ol>
+<p>这就是“分配地址”阶段。</p>
+<pre tabindex="0"><code class="language-ld" data-lang="ld">MEMORY
+{
+  MROM (rx)  : ORIGIN = 0x20000000, LENGTH = 128K
+  SRAM (rwx) : ORIGIN = 0x0f000000, LENGTH = 8K
+}
+
+ENTRY(_start)
+
+SECTIONS
+{
+  . = ORIGIN(MROM);
+
+  .text :
+  {
+    *(entry)
+    *(.text*)
+  } &gt; MROM
+
+  .rodata :
+  {
+    *(.rodata*)
+  } &gt; MROM
+
+  . = ORIGIN(SRAM);
+
+  .data : AT(LOADADDR(.rodata) + SIZEOF(.rodata))
+  {
+    _data_start = .;
+    *(.data*)
+    _data_end = .;
+  } &gt; SRAM
+
+  _data_load = LOADADDR(.data);
+
+  .bss :
+  {
+    _bss_start = .;
+    *(.bss*)
+    *(COMMON)
+    _bss_end = .;
+  } &gt; SRAM
+
+  . = ALIGN(8);
+  _heap_start = .;
+
+  _stack_top = ORIGIN(SRAM) + LENGTH(SRAM);
+}
+</code></pre><p>这个脚本就是一个典型的“ROM to RAM copy model”</p>
+<p>内存布局是：</p>
+<p>ROM:</p>
+<pre tabindex="0"><code>.text
+.rodata
+.data (initial image)
+</code></pre><p>SRAM:</p>
+<pre tabindex="0"><code>.data (runtime)
+.bss
+.heap
+.stack
+</code></pre><h2></h2>
+<p>现在你可以看到完整逻辑：</p>
+<ol>
+<li>CPU 复位</li>
+<li>SP 未知</li>
+<li>必须先设置栈</li>
+<li>才能安全调用函数</li>
+<li>再初始化 .data / .bss</li>
+<li>再进入 C 语言世界</li>
+</ol>
+<p>堆是“附加能力”
+栈是“基础设施”</p>
+<h4 id="一启动代码startup-code本质是什么">一、启动代码（startup code）本质是什么？<a href="#一启动代码startup-code本质是什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>一句话定义：</p>
+<blockquote>
+<p>启动代码 = 在进入 C 语言世界之前，建立运行环境的那段最低级代码。</p>
+</blockquote>
+<p>CPU 上电后不会自动帮你：</p>
+<ul>
+<li>设置栈</li>
+<li>初始化全局变量</li>
+<li>清零未初始化变量</li>
+<li>调用构造函数</li>
+<li>跳转到 main()</li>
+</ul>
+<p>这些都必须由你（或者 libc）完成。</p>
+<hr>
+<h4 id="启动代码必须做的几件事按顺序">启动代码必须做的几件事（按顺序）<a href="#启动代码必须做的几件事按顺序" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>你目前讲的是偏裸机 / bootloader 场景，我重点讲这个。</p>
+<hr>
+<h4 id="1-必须先设置栈stack-pointer">1️⃣ 必须先设置栈（Stack Pointer）<a href="#1-必须先设置栈stack-pointer" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>因为 C 语言依赖栈。</p>
+<p>例如：</p>
+<pre tabindex="0"><code>int main() {
+    int a = 5;
+}
+</code></pre><p>变量 <code>a</code> 在栈上。</p>
+<p>函数调用：</p>
+<pre tabindex="0"><code>foo();
+</code></pre><p>会：</p>
+<ul>
+<li>把返回地址压栈</li>
+<li>保存寄存器</li>
+<li>分配局部变量空间</li>
+</ul>
+<p>如果 SP 没有指向合法内存：</p>
+<ul>
+<li>push 会写到未知地址</li>
+<li>函数调用直接崩溃</li>
+<li>甚至访问到非法地址导致异常</li>
+</ul>
+<p>所以启动代码第一步通常是：</p>
+<pre tabindex="0"><code>ldr sp, =_stack_top
+</code></pre><p>或</p>
+<pre tabindex="0"><code>mov sp, #0x20010000
+</code></pre><p>这一步建立运行时环境的“地基”。</p>
+<hr>
+<h4 id="2-为什么必须复制-data-段">2️⃣ 为什么必须复制 .data 段？<a href="#2-为什么必须复制-data-段" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>这涉及 LMA / VMA。</p>
+<p>典型裸机内存布局：</p>
+<p>Flash：</p>
+<pre tabindex="0"><code>.text
+.rodata
+.data  (初始化数据的存储副本)
+</code></pre><p>RAM：</p>
+<pre tabindex="0"><code>.data  (真正运行时的)
+.bss
+.stack
+.heap
+</code></pre><p>关键点：</p>
+<p>.data 段：</p>
+<ul>
+<li>运行地址在 RAM</li>
+<li>初始值存储在 Flash</li>
+</ul>
+<p>例如：</p>
+<pre tabindex="0"><code>int g = 5;
+</code></pre><p>编译器会把 5 放到 Flash。</p>
+<p>但运行时：</p>
+<pre tabindex="0"><code>g 必须在 RAM 中
+</code></pre><p>因为：</p>
+<ul>
+<li>全局变量可能被修改</li>
+<li>Flash 通常不可写</li>
+</ul>
+<p>所以启动代码必须：</p>
+<pre tabindex="0"><code>把 Flash 中的 .data 复制到 RAM 中的 .data
+</code></pre><p>否则：</p>
+<ul>
+<li>g 读取值是错的</li>
+<li>或者访问未初始化内存</li>
+</ul>
+<p>典型代码：</p>
+<pre tabindex="0"><code>uint32_t *src = &amp;_sidata;   // LMA
+uint32_t *dst = &amp;_sdata;    // VMA
+while (dst &lt; &amp;_edata) {
+    *dst++ = *src++;
+}
+</code></pre><h4 id="为什么必须清零-bss">为什么必须清零 .bss？<a href="#为什么必须清零-bss" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>.bss 段：</p>
+<p>存放未初始化的全局变量</p>
+<pre tabindex="0"><code>int x;
+</code></pre><p>按照 C 标准：</p>
+<blockquote>
+<p>未初始化的全局变量默认必须为 0</p>
+</blockquote>
+<p>但：</p>
+<ul>
+<li>Flash 里不会给它存 0</li>
+<li>RAM 上电后是随机值</li>
+</ul>
+<p>所以必须清零。</p>
+<p>启动代码必须做：</p>
+<pre tabindex="0"><code>uint32_t *p = &amp;_sbss;
+while (p &lt; &amp;_ebss) {
+    *p++ = 0;
+}
+</code></pre><p>否则：</p>
+<p>程序逻辑会随机错误。</p>
+<hr>
+<h4 id="最后才能调用-main">最后才能调用 main()<a href="#最后才能调用-main" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>完整流程：</p>
+<pre tabindex="0"><code>CPU reset
+  ↓
+跳到 reset handler
+  ↓
+设置 SP
+  ↓
+复制 .data
+  ↓
+清零 .bss
+  ↓
+调用 C++ 构造函数（如果有）
+  ↓
+调用 main()
+</code></pre><hr>
+<h4 id="如果不做这些会发生什么">如果不做这些会发生什么？<a href="#如果不做这些会发生什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<table>
+	<thead>
+			<tr>
+					<th>忽略步骤</th>
+					<th>后果</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>不设栈</td>
+					<td>函数调用直接崩溃</td>
+			</tr>
+			<tr>
+					<td>不复制 .data</td>
+					<td>初始化全局变量值错误</td>
+			</tr>
+			<tr>
+					<td>不清零 .bss</td>
+					<td>未初始化变量随机值</td>
+			</tr>
+			<tr>
+					<td>不调用构造函数</td>
+					<td>C++ 静态对象出错</td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="第六部分现代linux的变奏">第六部分：现代Linux的变奏<a href="#第六部分现代linux的变奏" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="linux-用户态的启动流程">Linux 用户态的启动流程<a href="#linux-用户态的启动流程" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>:~$ readelf -h hello
+</span></span><span style="display:flex;"><span>ELF 头：
+</span></span><span style="display:flex;"><span>  Magic：   7f <span style="color:#ae81ff">45</span> 4c <span style="color:#ae81ff">46</span> <span style="color:#ae81ff">02</span> <span style="color:#ae81ff">01</span> <span style="color:#ae81ff">01</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> <span style="color:#ae81ff">00</span> 
+</span></span><span style="display:flex;"><span>  类别:                              ELF64
+</span></span><span style="display:flex;"><span>  数据:                              <span style="color:#ae81ff">2</span> 补码，小端序 <span style="color:#f92672">(</span>little endian<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Version:                           <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>current<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  OS/ABI:                            UNIX - System V
+</span></span><span style="display:flex;"><span>  ABI 版本:                          <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  类型:                              DYN <span style="color:#f92672">(</span>Position-Independent Executable file<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  系统架构:                          Advanced Micro Devices X86-64
+</span></span><span style="display:flex;"><span>  版本:                              0x1
+</span></span><span style="display:flex;"><span>  入口点地址：               0x1060
+</span></span><span style="display:flex;"><span>  程序头起点：          <span style="color:#ae81ff">64</span> <span style="color:#f92672">(</span>bytes into file<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Start of section headers:          <span style="color:#ae81ff">13976</span> <span style="color:#f92672">(</span>bytes into file<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  标志：             0x0
+</span></span><span style="display:flex;"><span>  Size of this header:               <span style="color:#ae81ff">64</span> <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Size of program headers:           <span style="color:#ae81ff">56</span> <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Number of program headers:         <span style="color:#ae81ff">13</span>
+</span></span><span style="display:flex;"><span>  Size of section headers:           <span style="color:#ae81ff">64</span> <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  Number of section headers:         <span style="color:#ae81ff">31</span>
+</span></span><span style="display:flex;"><span>  Section header string table index: <span style="color:#ae81ff">30</span>
+</span></span></code></pre></div><pre tabindex="0"><code>lzk@lzk-Virtual-Machine:~$ gcc hello.c -no-pie -o hello
+lzk@lzk-Virtual-Machine:~$ readelf -h hello
+ELF 头：
+  Magic：   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  类别:                              ELF64
+  数据:                              2 补码，小端序 (little endian)
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI 版本:                          0
+  类型:                              EXEC (可执行文件)
+  系统架构:                          Advanced Micro Devices X86-64
+  版本:                              0x1
+  入口点地址：               0x401050
+  程序头起点：          64 (bytes into file)
+  Start of section headers:          13904 (bytes into file)
+  标志：             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         13
+  Size of section headers:           64 (bytes)
+  Number of section headers:         31
+  Section header string table index: 30
+</code></pre><p>很好，这个问题非常关键。你已经开始真正“看懂 ELF 了”。</p>
+<p>你现在看到：</p>
+<pre tabindex="0"><code>类型: DYN (Position-Independent Executable file)
+入口点地址：0x1060
+</code></pre><p>你没看到：</p>
+<pre tabindex="0"><code>. = 0x400000
+</code></pre><p>这不是你看漏了，而是因为：</p>
+<blockquote>
+<p>你现在编译出来的是 PIE（Position Independent Executable）。</p>
+</blockquote>
+<hr>
+<h4 id="为什么是-dyn-而不是-exec">为什么是 DYN 而不是 EXEC？<a href="#为什么是-dyn-而不是-exec" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>注意这一行：</p>
+<pre tabindex="0"><code>类型: DYN (Position-Independent Executable file)
+</code></pre><p>在现代 Linux（Ubuntu 默认 GCC）中：</p>
+<pre tabindex="0"><code>gcc hello.c -o hello
+</code></pre><p>默认开启：</p>
+<pre tabindex="0"><code>-fPIE
+-pie
+</code></pre><p>所以生成的不是传统的：</p>
+<pre tabindex="0"><code>EXEC
+</code></pre><p>而是：</p>
+<pre tabindex="0"><code>DYN
+</code></pre><p>它和共享库使用同一种 ELF 类型。</p>
+<hr>
+<h4 id="pie-意味着什么">PIE 意味着什么？<a href="#pie-意味着什么" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>PIE 的含义是：</p>
+<blockquote>
+<p>程序可以被加载到任意虚拟地址。</p>
+</blockquote>
+<p>因此：</p>
+<ul>
+<li>链接时不能固定 <code>. = 0x400000</code></li>
+<li>所有代码是相对地址</li>
+<li>真正加载地址由内核随机决定（ASLR）</li>
+</ul>
+<p>所以你看到：</p>
+<pre tabindex="0"><code>入口点地址：0x1060
+</code></pre><p>这其实是：</p>
+<pre tabindex="0"><code>相对于加载基址的偏移
+</code></pre><p>而不是绝对虚拟地址。</p>
+<hr>
+<h4 id="那-0x400000-到底去哪了">那 0x400000 到底去哪了？<a href="#那-0x400000-到底去哪了" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在老式（非 PIE）可执行文件中：</p>
+<pre tabindex="0"><code>gcc hello.c -no-pie -o hello
+</code></pre><p>然后再：</p>
+<pre tabindex="0"><code>readelf -h hello
+</code></pre><p>你会看到：</p>
+<pre tabindex="0"><code>类型: EXEC
+入口点地址: 0x401060
+</code></pre><p>这时候：</p>
+<ul>
+<li><code>.text</code> 从 0x400000 开始</li>
+<li><code>_start</code> 在 0x401060</li>
+</ul>
+<p>也就是说：</p>
+<pre tabindex="0"><code>0x400000 + 0x1060 = 0x401060
+</code></pre><p>而你现在的：</p>
+<pre tabindex="0"><code>0x1060
+</code></pre><p>是 PIE 模式下的“相对入口”。</p>
+<p>所以在非PIE版本中所有程序的入口都在0x400000？那为什么两个不一样的程序不会进入到同一段代码呢</p>
+<p>即使两个非-PIE 程序的入口都是 0x400000，它们也不会进入同一段代码，因为每个进程拥有独立的虚拟地址空间。</p>
+<h4 id="虚拟地址空间是每个进程独立的">虚拟地址空间是“每个进程独立的”<a href="#虚拟地址空间是每个进程独立的" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>在 Linux 上：</p>
+<ul>
+<li>每个进程都有自己的页表</li>
+<li>每个进程的虚拟地址空间互相隔离</li>
+<li>0x400000 在不同进程里是不同的映射</li>
+</ul>
+<p>举个例子：</p>
+<p>假设你有两个程序：</p>
+<ul>
+<li>hello</li>
+<li>world</li>
+</ul>
+<p>它们都是 non-PIE，入口都是 0x401060。</p>
+<p>当你同时运行：</p>
+<pre tabindex="0"><code>./hello &amp;
+./world &amp;
+</code></pre><p>它们的 <code>/proc/&lt;pid&gt;/maps</code> 可能看起来像：</p>
+<pre tabindex="0"><code>00400000-00401000 r-xp hello
+00400000-00401000 r-xp world
+</code></pre><p>看起来地址一样。</p>
+<p>但：</p>
+<ul>
+<li>hello 的 0x400000 映射到物理页 A</li>
+<li>world 的 0x400000 映射到物理页 B</li>
+</ul>
+<p>因为它们的页表不同。</p>
+<h2 id="总结">总结<a href="#总结" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>好了，我们现在已经大概明白C语言是怎么运行在我们的计算机上了，感谢大家的支持</p>
+<p>作者邮箱：3089830091@qq.com 欢迎交流</p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

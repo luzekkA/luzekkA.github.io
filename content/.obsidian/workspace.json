@@ -1,0 +1,237 @@
+{
+  "main": {
+    "id": "7e5b3a098cc80b09",
+    "type": "split",
+    "children": [
+      {
+        "id": "cca37b98aabe50f7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3c11f667d93bc08b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "使用SRAM Macro替换RTL代码中的仿真用RAM"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "7360e231bcac8b8c",
+    "type": "split",
+    "children": [
+      {
+        "id": "37a4b5e5a60a0850",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5c7588f8751bb086",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "d5841743286ab593",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "80db32aa453bf220",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "f9a9012c1b7f9783",
+    "type": "split",
+    "children": [
+      {
+        "id": "fe346fa7dcc75567",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "85c1f6a789c7f0ef",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": false
+              },
+              "icon": "links-coming-in",
+              "title": "反向链接"
+            }
+          },
+          {
+            "id": "b737c1f6360d703a",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "posts/奇妙的C语言关键字.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "出链"
+            }
+          },
+          {
+            "id": "9aa3a749866a0ab7",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "4c92d7e966a36f86",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "374652b1c8be832b",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "大纲"
+            }
+          },
+          {
+            "id": "912b82fa6ed40e40",
+            "type": "leaf",
+            "state": {
+              "type": "smart-env-status-view",
+              "state": {},
+              "icon": "gauge",
+              "title": "Smart Environment Status"
+            }
+          },
+          {
+            "id": "11a6d351e38e95a9",
+            "type": "leaf",
+            "state": {
+              "type": "smart-connections-view",
+              "state": {},
+              "icon": "smart-connections",
+              "title": "Connections"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false,
+      "smart-connections:Smart Connections: Open random connection": false,
+      "smart-connections:Smart Connections: Open connections view": false,
+      "smart-connections:Toggle Footer Connections": false
+    }
+  },
+  "active": "3c11f667d93bc08b",
+  "lastOpenFiles": [
+    "posts/UVC.md",
+    "posts/ESP32 websocket.md",
+    "posts/C源码到硬件执行Pt3——Wakeup the PHY.md",
+    "posts/C 源码到硬件执行Pt2——C语言的运行时.md",
+    "posts/C 源码到硬件执行Pt1——C源码到Bin裸二进制文件.md",
+    "posts/图像处理.md",
+    "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+    "posts/如何优雅地结束一个线程Pt2.md",
+    "posts/如何优雅地结束一个线程Pt1.md",
+    "posts/奇妙的C语言关键字.md",
+    "posts/c-compile-and-link.md",
+    "项目集/Linux图像处理中间件/index.md",
+    "项目集/Linux图像处理中间件/assets/stress_report_dashboard.png",
+    "项目集/Linux图像处理中间件/assets/stress_report_overview.png",
+    "项目集/Linux图像处理中间件/assets/stress_report_latency.png",
+    "项目集/ChatChat 聊聊APP/index.md",
+    "skills/_index.md",
+    "项目集/RV32I指令集的RISC-V多周期CPU的设计与FPGA实现/index.md",
+    "Blog.base",
+    "未命名.md",
+    "项目集/_index.md"
+  ]
+}

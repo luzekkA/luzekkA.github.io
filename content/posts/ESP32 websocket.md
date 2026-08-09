@@ -1,9 +1,15 @@
 ---
-title: "ESP32 websocket"
+title: ESP32 websocket
 date: 2026-02-20T17:46:18+08:00
-draft: true
-tags: ["C语言", "编译器", "链接", "操作系统"]
-categories: ["底层原理"]
+draft: false
+toc: true
+tags:
+  - ESP32
+  - WebSocket
+  - 嵌入式
+categories:
+  - 嵌入式
+summary: 在 ESP32 上搭建 WebSocket 服务端，涵盖 HTTP Server 启动、WebSocket 握手注册、多客户端管理与互斥锁广播机制。
 ---
 
 # ESP32 websocket

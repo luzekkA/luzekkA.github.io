@@ -2,7 +2,7 @@
 title: "C 源码到硬件执行Pt3——Wakeup the PHY"
 date: 2026-03-19T19:44:21+08:00
 draft: false
-toc : true
+toc: true
 tags: ["C语言", "编译器", "链接", "操作系统"]
 categories: ["底层原理"]
 summary: "本文拆解了链接脚本（Linker Script）如何通过 LMA 与 VMA 的地址解耦，化解 Flash 只读与 RAM 易失的物理矛盾；透视启动代码（Startup Code）在进入 main 函数前，如何通过栈指针建立、.data 段搬运与 .bss 段清零，完成从静态数据到运行时内存的冷启动。"

@@ -1,16 +1,12 @@
-+++
-title = "如何优雅地结束一个线程Pt2"
-date = "2026-03-06T14:54:18+08:00"
-author = "LuzekkA"
-cover = ""
-tags = ["FreeRTOS", "并发"]
-keywords = ["thread", "freeRTOS"]
-description = "FreeRTOS 中 task 优雅退出的工程级实践的第二集"
-showFullContent = false
-readingTime = false
-hideComments = false
-toc = true
-+++
+---
+title: "如何优雅地结束一个线程Pt2"
+date: 2026-03-06T14:54:18+08:00
+draft: false
+toc: true
+tags: ["FreeRTOS", "并发"]
+categories: ["嵌入式"]
+summary: "FreeRTOS 中 task 优雅退出的工程级实践的第二集"
+---
 
 ## 如何优雅地结束一个线程Pt2
 

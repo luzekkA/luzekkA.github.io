@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Linux 图像处理中间件平台 :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="基于共享内存零拷贝 &#43; UDS 轻量信令的高性能图像处理中间件，C/Python 混合架构，峰值 1340 QPS，端到端延迟 &lt; 3ms。" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/code.min.c4581949edab7810737609fc5568852bcd908945f14561e366dcd2300a370545.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/syntax.min.a2cc694a9b481f15d41722bffc2cc54eea4c4f74fd9072b0b33253604c22606e.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="http://localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Linux 图像处理中间件平台">
+<meta property="og:description" content="基于共享内存零拷贝 &#43; UDS 轻量信令的高性能图像处理中间件，C/Python 混合架构，峰值 1340 QPS，端到端延迟 &lt; 3ms。" />
+<meta property="og:url" content="http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="http://localhost:1313/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+  <meta property="article:section" content="项目集" />
+
+
+  <meta property="article:published_time" content="2026-07-20 12:00:00 &#43;0800 CST" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1313/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/">作品集</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/" >作品集</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/">Linux 图像处理中间件平台</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2026-07-20</time></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="http://localhost:1313/tags/c%E8%AF%AD%E8%A8%80/">C语言</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/python/">Python</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98/">共享内存</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">图像处理</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/%E9%9B%B6%E6%8B%B7%E8%B4%9D/">零拷贝</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-一句话说清">1. 一句话说清</a></li>
+    <li><a href="#2-项目概览">2. 项目概览</a></li>
+    <li><a href="#3-解决了什么">3. 解决了什么</a></li>
+    <li><a href="#4-架构核心控制平面与数据平面分离">4. 架构核心：控制平面与数据平面分离</a></li>
+    <li><a href="#5-共享内存池设计">5. 共享内存池设计</a></li>
+    <li><a href="#6-进程模型">6. 进程模型</a></li>
+    <li><a href="#7-压力测试">7. 压力测试</a>
+      <ul>
+        <li><a href="#71-测试数据debug-模式python-跳过算法耗时测量纯-ipc-管道性能">7.1 测试数据（Debug 模式，Python 跳过算法耗时，测量纯 IPC 管道性能）</a></li>
+        <li><a href="#72-图表分析">7.2 图表分析</a></li>
+        <li><a href="#73-单次快照16-并发--100-帧连接64kb-载荷">7.3 单次快照（16 并发 × 100 帧/连接，64KB 载荷）</a></li>
+        <li><a href="#74-压测结论">7.4 压测结论</a></li>
+      </ul>
+    </li>
+    <li><a href="#8-关键技术创新点">8. 关键技术创新点</a>
+      <ul>
+        <li><a href="#零拷贝跨语言图像传输">零拷贝跨语言图像传输</a></li>
+        <li><a href="#信号量驱动的背压机制">信号量驱动的背压机制</a></li>
+        <li><a href="#epolloneshot--线程池协同">EPOLLONESHOT + 线程池协同</a></li>
+        <li><a href="#跨语言动态参数解析">跨语言动态参数解析</a></li>
+      </ul>
+    </li>
+    <li><a href="#9-代码结构">9. 代码结构</a></li>
+    <li><a href="#10-构建与运行">10. 构建与运行</a></li>
+    <li><a href="#11-总结">11. 总结</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h1 id="linux-图像处理中间件平台">Linux 图像处理中间件平台<a href="#linux-图像处理中间件平台" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<blockquote>
+<p><strong>1000 路摄像头实时接入，C 端收帧，Python 端做 AI 推理。每帧 4MB，传统方案拷两次数据就崩了——共享内存零拷贝 + UDS 轻量信令，端到端 &lt; 3ms，峰值 1340 QPS。</strong></p>
+</blockquote>
+<hr>
+<h2 id="1-一句话说清">1. 一句话说清<a href="#1-一句话说清" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<table>
+	<thead>
+			<tr>
+					<th>问题</th>
+					<th>方案</th>
+					<th>结果</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>C 收图快、Python 推理慢，中间序列化 4MB/帧是灾难</td>
+					<td>共享内存零拷贝传递图像，UDS 只传 4 字节索引</td>
+					<td>峰值 1340 QPS（64KB），低负载延迟 &lt; 3ms</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>适用场景</strong>：视频流实时处理、工业相机 AI 质检、多路监控智能分析——任何需要 C 负责 I/O、Python 负责推理的高通量流水线。</p>
+<hr>
+<h2 id="2-项目概览">2. 项目概览<a href="#2-项目概览" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<table>
+	<thead>
+			<tr>
+					<th>维度</th>
+					<th>说明</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>定位</strong></td>
+					<td>图像/视频帧实时处理中间件</td>
+			</tr>
+			<tr>
+					<td><strong>技术栈</strong></td>
+					<td>C（epoll + 线程池 + 共享内存） + Python（OpenCV / 算法推理）</td>
+			</tr>
+			<tr>
+					<td><strong>核心指标</strong></td>
+					<td>峰值 ~1340 QPS（64KB 载荷），低负载端到端 &lt; 3ms</td>
+			</tr>
+			<tr>
+					<td><strong>代码规模</strong></td>
+					<td>~1500 行 C + ~170 行 Python，零第三方 C 依赖</td>
+			</tr>
+			<tr>
+					<td><strong>硬约束</strong></td>
+					<td>5 槽位共享内存 + 4 线程池 worker → 吞吐天花板即设计上限</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="3-解决了什么">3. 解决了什么<a href="#3-解决了什么" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<table>
+	<thead>
+			<tr>
+					<th>挑战</th>
+					<th>传统方案</th>
+					<th>我的方案</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>高并发接入</strong></td>
+					<td>单线程 accept/recv 阻塞</td>
+					<td>epoll + 线程池，IO 与计算解耦</td>
+			</tr>
+			<tr>
+					<td><strong>跨语言协作</strong></td>
+					<td>JSON/Protobuf 序列化 4MB 帧 → 耗时灾难</td>
+					<td>共享内存零拷贝，UDS 仅传 4B 索引</td>
+			</tr>
+			<tr>
+					<td><strong>背压控制</strong></td>
+					<td>无限制投递 → 内存爆炸</td>
+					<td>信号量槽位机制，硬上限 5 帧在途</td>
+			</tr>
+			<tr>
+					<td><strong>进程可靠性</strong></td>
+					<td>推理进程崩溃 → 整体不可用</td>
+					<td>Monitor 看门狗 + 独立重启</td>
+			</tr>
+			<tr>
+					<td><strong>协议可靠性</strong></td>
+					<td>TCP 粘包/半包 → 字节流错位</td>
+					<td>FrameHeader + magic 校验（0xDEADBEEF）</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="4-架构核心控制平面与数据平面分离">4. 架构核心：控制平面与数据平面分离<a href="#4-架构核心控制平面与数据平面分离" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>这是整个系统最重要的设计决策。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th>控制平面</th>
+					<th>数据平面</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>传输内容</strong></td>
+					<td>slot_index（4B）、result_code（8B）</td>
+					<td>4MB 原始图像帧</td>
+			</tr>
+			<tr>
+					<td><strong>传输方式</strong></td>
+					<td>Unix Domain Socket</td>
+					<td>POSIX 共享内存 mmap</td>
+			</tr>
+			<tr>
+					<td><strong>拷贝次数</strong></td>
+					<td>内核态 1 次（UDS 必经）</td>
+					<td><strong>零次</strong>（mmap 直读）</td>
+			</tr>
+	</tbody>
+</table>
+<pre tabindex="0"><code>C Worker                        Python Worker
+  │                                │
+  │  memcpy 4MB → SHM              │  mmap 切片直读（零拷贝）
+  │  send(slot_index) ──UDS──→    │  算法推理
+  │                    ←──UDS──   │  send(slot_idx, result)
+  │  sem_post(empty) 归还槽位      │
+  │                                │
+</code></pre><p><strong>为什么不用 Redis/Kafka/gRPC？</strong> 它们的共享内存方案要么绑定特定框架（gRPC shm transport），要么内存拷贝不可避免（Redis 的 RDB 持久化路径）。这里直接操作 <code>/dev/shm</code>，零依赖零拷贝。</p>
+<hr>
+<h2 id="5-共享内存池设计">5. 共享内存池设计<a href="#5-共享内存池设计" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<pre tabindex="0"><code>/dev/shm/image_pool_shm
+┌──────────────────────────────────────┐
+│ ShmControl (元数据)                   │
+│  · slot_status[5]  每槽 EMPTY/FULL  │
+│  · lengths[5]      每帧实际大小      │
+│  · client_fds[5]   来源连接          │
+│  · pthread_mutex_t  跨进程互斥      │
+├──────────────────────────────────────┤
+│ Slot 0: 4MB                          │
+│ Slot 1: 4MB                          │
+│ Slot 2: 4MB                          │
+│ Slot 3: 4MB                          │
+│ Slot 4: 4MB                          │
+└──────────────────────────────────────┘
+信号量: sem_empty(5) ← C 端 sem_wait 阻塞等空位
+        sem_full(0)  ← Python 端感知新任务到达
+</code></pre><p><strong>跨语言兼容关键</strong>：Python 不硬编码 C 结构体偏移——读取共享内存前 8 字节自解析 <code>data_offset</code> + <code>slot_size</code>，C 端改结构不影响 Python 端。</p>
+<hr>
+<h2 id="6-进程模型">6. 进程模型<a href="#6-进程模型" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<pre tabindex="0"><code>Monitor (守护进程)
+  ├── fork() → C Worker    ← epoll + 线程池 + UDS 发送
+  ├── fork()+execlp → Python Worker ← mmap 消费 + 算法推理
+  └── waitpid() 循环监听
+        ├── C Worker 崩了 → sleep 2s → 重新 fork
+        └── Python Worker 崩了 → sleep 2s → 重新 execlp
+</code></pre><p>Monitor 不参与任何业务 I/O，<strong>只做进程生命周期管理</strong>。C 和 Python 各自独立崩溃恢复，互不拖累。</p>
+<hr>
+<h2 id="7-压力测试">7. 压力测试<a href="#7-压力测试" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>压测工具是完整的 C 语言框架（<code>test/stress/</code>，~800 行），支持阶梯并发、速率控制、全量延迟采集、6 维错误分类、SIGINT 优雅终止。</p>
+<h3 id="71-测试数据debug-模式python-跳过算法耗时测量纯-ipc-管道性能">7.1 测试数据（Debug 模式，Python 跳过算法耗时，测量纯 IPC 管道性能）<a href="#71-测试数据debug-模式python-跳过算法耗时测量纯-ipc-管道性能" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: center">阶梯</th>
+					<th style="text-align: center">并发</th>
+					<th style="text-align: center">实际 QPS</th>
+					<th style="text-align: center">吞吐量</th>
+					<th style="text-align: center">p50</th>
+					<th style="text-align: center">p95</th>
+					<th style="text-align: center">p99</th>
+					<th style="text-align: center">成功率</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: center">1</td>
+					<td style="text-align: center">10</td>
+					<td style="text-align: center"><strong>491</strong></td>
+					<td style="text-align: center">30.7 MB/s</td>
+					<td style="text-align: center">2.3ms</td>
+					<td style="text-align: center">5.0ms</td>
+					<td style="text-align: center">6.4ms</td>
+					<td style="text-align: center">100%</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">2</td>
+					<td style="text-align: center">50</td>
+					<td style="text-align: center"><strong>1,259</strong></td>
+					<td style="text-align: center">78.7 MB/s</td>
+					<td style="text-align: center">37.8ms</td>
+					<td style="text-align: center">44.6ms</td>
+					<td style="text-align: center">49.5ms</td>
+					<td style="text-align: center">100%</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">3</td>
+					<td style="text-align: center">100</td>
+					<td style="text-align: center"><strong>1,276</strong></td>
+					<td style="text-align: center">79.8 MB/s</td>
+					<td style="text-align: center">73.8ms</td>
+					<td style="text-align: center">85.2ms</td>
+					<td style="text-align: center">91.0ms</td>
+					<td style="text-align: center">100%</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">4</td>
+					<td style="text-align: center">200</td>
+					<td style="text-align: center"><strong>1,294</strong></td>
+					<td style="text-align: center">80.9 MB/s</td>
+					<td style="text-align: center">138ms</td>
+					<td style="text-align: center">162ms</td>
+					<td style="text-align: center">181ms</td>
+					<td style="text-align: center">100%</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">5</td>
+					<td style="text-align: center">300</td>
+					<td style="text-align: center"><strong>1,341</strong></td>
+					<td style="text-align: center">83.8 MB/s</td>
+					<td style="text-align: center">187ms</td>
+					<td style="text-align: center">219ms</td>
+					<td style="text-align: center">229ms</td>
+					<td style="text-align: center">99.9%</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">6</td>
+					<td style="text-align: center">500</td>
+					<td style="text-align: center"><strong>1,326</strong></td>
+					<td style="text-align: center">82.9 MB/s</td>
+					<td style="text-align: center">361ms</td>
+					<td style="text-align: center">408ms</td>
+					<td style="text-align: center">445ms</td>
+					<td style="text-align: center">100%</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">7</td>
+					<td style="text-align: center">1,000</td>
+					<td style="text-align: center"><strong>1,282</strong></td>
+					<td style="text-align: center">80.1 MB/s</td>
+					<td style="text-align: center">612ms</td>
+					<td style="text-align: center">661ms</td>
+					<td style="text-align: center">688ms</td>
+					<td style="text-align: center">99.5%</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="72-图表分析">7.2 图表分析<a href="#72-图表分析" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>以下是压测自动生成的真实图表：</p>
+<p><img src="assets/stress_report_dashboard.png" alt="压测仪表盘"></p>
+<p><strong>仪表盘解读</strong>：</p>
+<ul>
+<li><strong>QPS 柱状图（左上）</strong>：目标 QPS（橙）从 500 飙升到 50,000，实际 QPS（蓝）在 Step 2 就停在 ~1,300 附近。这个&quot;柱状图剪刀差&quot;是系统触达吞吐天花板的直观信号——瓶颈不在客户端发得不够快，在服务端处理不过来。</li>
+<li><strong>延迟分位图（右上）</strong>：Step 1 时 p50/p95/p99 挤在一起（2~6ms），系统运行在舒适区。Step 2 起曲线分层——p99 远高于 p50，说明<strong>排队延迟</strong>成为主导。并发从 50 涨到 1000，延迟涨了 <strong>16 倍</strong>，QPS 几乎没变。</li>
+<li><strong>成功率（右下）</strong>：Step 1~6 保持 99.9%+，Step 7 出现 213 个 <code>recv_failed</code> 错误（极端排队下客户端超时断开）。</li>
+</ul>
+<p><img src="assets/stress_report_latency.png" alt="延迟分析"></p>
+<p><strong>延迟 CDF + 箱线图解读</strong>：</p>
+<ul>
+<li><strong>CDF 曲线（左）</strong>：紫色（Step 1）最左最陡——低负载下延迟高度可预测。黄色（Step 6~7）大幅右移且坡度变缓——系统进入饱和区后，<strong>所有请求的延迟都变差了</strong>，不是个别毛刺。</li>
+<li><strong>箱线图（右）</strong>：Step 1 的箱子几乎看不见（延迟集中在极小范围）。Step 5~7 箱子拉长——p25 到 p75 的跨度达数百毫秒，说明同一时刻处理的不同请求延迟差异极大，<strong>调度公平性随并发恶化</strong>。</li>
+</ul>
+<p><img src="assets/stress_report_overview.png" alt="总体概览"></p>
+<p><strong>四联图全景</strong>：左上 QPS 剪刀差 → 右上延迟分层 → 左下吞吐平台化（~80 MB/s 撞墙，再增加并发数完全不涨）→ 右下成功率 + 错误计数。四张图指向同一个结论。</p>
+<h3 id="73-单次快照16-并发--100-帧连接64kb-载荷">7.3 单次快照（16 并发 × 100 帧/连接，64KB 载荷）<a href="#73-单次快照16-并发--100-帧连接64kb-载荷" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<table>
+	<thead>
+			<tr>
+					<th>指标</th>
+					<th>数值</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>测试规模</td>
+					<td>16 × 100 = 1,600 帧</td>
+			</tr>
+			<tr>
+					<td>QPS</td>
+					<td><strong>1,717</strong></td>
+			</tr>
+			<tr>
+					<td>吞吐量</td>
+					<td><strong>107.3 MB/s</strong></td>
+			</tr>
+			<tr>
+					<td>p50</td>
+					<td>9.0ms</td>
+			</tr>
+			<tr>
+					<td>p99</td>
+					<td>13.4ms</td>
+			</tr>
+			<tr>
+					<td>成功率</td>
+					<td>99.0%</td>
+			</tr>
+	</tbody>
+</table>
+<p>小规模下延迟优异（p50~p99 仅差 4ms），调度公平、无显著排队。</p>
+<h3 id="74-压测结论">7.4 压测结论<a href="#74-压测结论" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<pre tabindex="0"><code>★ 吞吐天花板: ~1,340 QPS / ~84 MB/s
+★ 膝点在 Step 2（50 并发）就已到达——此后并发涨 20 倍，QPS 涨幅不到 2%
+★ 根因: 5 槽位 + 4 worker 的硬上限
+    → 当 Python 处理慢于 C 收图时，5 槽位瞬间占满
+    → 4 个线程全部阻塞在 sem_wait(empty)
+    → 新连接堆积在 epoll 就绪队列
+★ 优化方向: 增大 SLOT_COUNT → 扩大在途任务缓冲
+             增大线程池 → 提高收图并行度
+             批量回写结果 → 减少 UDS 信令开销
+★ 低负载优势: 10 并发 p50 = 2.3ms，端到端延迟极低
+★ 延迟特征: 低并发 = 可预测；高并发 = 排队主导
+</code></pre><hr>
+<h2 id="8-关键技术创新点">8. 关键技术创新点<a href="#8-关键技术创新点" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="零拷贝跨语言图像传输">零拷贝跨语言图像传输<a href="#零拷贝跨语言图像传输" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<pre tabindex="0"><code>传统:  C 接收 → JSON 序列化 → Socket → Python 反序列化 → 处理
+        ↑ 至少 2 次 4MB 数据拷贝
+
+本项目: C 写 SHM → 发 4B slot_index → Python mmap 直读
+        ↑ 0 次图像拷贝，控制信令仅 12 字节
+</code></pre><h3 id="信号量驱动的背压机制">信号量驱动的背压机制<a href="#信号量驱动的背压机制" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p><code>sem_empty(5)</code> → C Worker 拿不到空槽就阻塞 → 天然限流，不会 OOM。</p>
+<h3 id="epolloneshot--线程池协同">EPOLLONESHOT + 线程池协同<a href="#epolloneshot--线程池协同" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>同一 fd 同一时刻只有一个线程处理，无需额外的 fd 级锁。</p>
+<h3 id="跨语言动态参数解析">跨语言动态参数解析<a href="#跨语言动态参数解析" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>Python 读 SHM 前 8 字节自解析偏移量——C 改结构不影响 Python，无需对齐。</p>
+<hr>
+<h2 id="9-代码结构">9. 代码结构<a href="#9-代码结构" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<pre tabindex="0"><code>MiddlewarePlatform/
+├── server/
+│   ├── main.c            # Monitor 守护进程
+│   ├── server.c          # TCP Server (epoll + 协议)
+│   ├── threadPool.c      # 线程池 (环形队列 + 条件变量)
+│   ├── sharedData.c      # 共享内存池 (shm_open + mmap)
+│   ├── udsWorker.c       # UDS 客户端 + 响应监听
+│   ├── include/          # 头文件
+│   └── utils/detect_worker.py  # Python 算法 Worker
+├── test/stress/          # 压测框架 (C 实现)
+│   ├── stress_main.c     # 入口 + 7 阶梯调度
+│   ├── stress_runner.c   # 并发执行引擎
+│   ├── stress_report.c   # 报告生成
+│   └── visualize_report.py  # 可视化（产出 3 张图）
+└── ARCHITECTURE.md
+</code></pre><hr>
+<h2 id="10-构建与运行">10. 构建与运行<a href="#10-构建与运行" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>make build          <span style="color:#75715e"># 编译</span>
+</span></span><span style="display:flex;"><span>make start          <span style="color:#75715e"># 后台启动（生产模式）</span>
+</span></span><span style="display:flex;"><span>make bench          <span style="color:#75715e"># 压测模式</span>
+</span></span><span style="display:flex;"><span>make start FG<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>     <span style="color:#75715e"># 前台调试</span>
+</span></span><span style="display:flex;"><span>make stop           <span style="color:#75715e"># 停止 + 清理 IPC 资源</span>
+</span></span></code></pre></div><hr>
+<h2 id="11-总结">11. 总结<a href="#11-总结" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>一个从裸系统调用搭建的生产级图像处理中间件。核心价值：</p>
+<ol>
+<li><strong>性能极致</strong>：共享内存零拷贝 + 信号量背压，实测 1300+ QPS</li>
+<li><strong>架构清晰</strong>：控制/数据平面分离，C/Python 各自独立生命周期</li>
+<li><strong>鲁棒可靠</strong>：Monitor 看门狗 + 协议校验 + 异常断开</li>
+<li><strong>工程完备</strong>：Makefile 一键操作 + 专业压测框架 + 可视化报告</li>
+</ol>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

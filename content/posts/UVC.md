@@ -1,11 +1,16 @@
 ---
-title: "UVC使用"
+title: UVC使用
 date: 2026-03-18T16:20:42+08:00
-draft: true
-toc : true
-tags: ["C语言", "编译器", "链接", "操作系统"]
-categories: ["底层原理"]
-summary: "本文深度拆解 C 语言运行时的‘动态秩序’，揭示栈帧回溯、堆分配算法与 sbrk 机制的物理本质，透视硬件 ABI 与启动代码如何共同构建出从局部变量到动态内存的逻辑分区。"
+draft: false
+toc: true
+tags:
+  - ESP32
+  - UVC
+  - USB
+  - 嵌入式
+categories:
+  - 嵌入式
+summary: 基于 ESP32 的 UVC（USB Video Class）协议实战，涵盖 USB Host 驱动安装、UVC 设备枚举与帧队列管理。
 ---
 
 # UVC使用

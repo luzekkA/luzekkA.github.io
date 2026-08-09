@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1314&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>非接触式眼底镜 :: My New Hugo Site</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="一款用于基层医疗场景的非接触式眼底成像设备，基于 FreeRTOS 和 ESP32 平台，实现实时视频流采集与传输，辅助医生观察眼部病变。" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="http://localhost:1314/%E9%A1%B9%E7%9B%AE%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/code.min.c4581949edab7810737609fc5568852bcd908945f14561e366dcd2300a370545.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/syntax.min.a2cc694a9b481f15d41722bffc2cc54eea4c4f74fd9072b0b33253604c22606e.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1314/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="http://localhost:1314/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1314/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="非接触式眼底镜">
+<meta property="og:description" content="一款用于基层医疗场景的非接触式眼底成像设备，基于 FreeRTOS 和 ESP32 平台，实现实时视频流采集与传输，辅助医生观察眼部病变。" />
+<meta property="og:url" content="http://localhost:1314/%E9%A1%B9%E7%9B%AE%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/" />
+<meta property="og:site_name" content="My New Hugo Site" />
+
+  <meta property="og:image" content="http://localhost:1314/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+  <meta property="article:section" content="项目集" />
+
+
+  <meta property="article:published_time" content="2026-07-15 12:00:00 &#43;0800 CST" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1314/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/skills/">Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/">作品集</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/skills/" >Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/" >作品集</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1314/%E9%A1%B9%E7%9B%AE%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/">非接触式眼底镜</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2026-07-15</time></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="http://localhost:1314/tags/freertos/">FreeRTOS</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/esp32/">ESP32</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/%E5%8C%BB%E7%96%97%E8%AE%BE%E5%A4%87/">医疗设备</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/uvc/">UVC</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/websocket/">WebSocket</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#项目概述">项目概述</a></li>
+    <li><a href="#技术架构">技术架构</a>
+      <ul>
+        <li><a href="#高并发异步系统架构">高并发异步系统架构</a></li>
+        <li><a href="#视频流内存管理调优">视频流内存管理调优</a></li>
+        <li><a href="#底层驱动与协议栈重构">底层驱动与协议栈重构</a></li>
+        <li><a href="#全链路系统排障">全链路系统排障</a></li>
+        <li><a href="#电源树设计">电源树设计</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h1 id="非接触式眼底镜">非接触式眼底镜<a href="#非接触式眼底镜" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<h2 id="项目概述">项目概述<a href="#项目概述" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>一款用于基层医疗场景的非接触式眼底成像设备，通过实时视频流采集眼底图像，辅助医生观察子痫等高致死率疾病引发的眼部病变，实现早期筛查与干预。项目由盖茨基金会资助，我负责嵌入式软件开发以及原型机硬件的开发。</p>
+<hr>
+<h2 id="技术架构">技术架构<a href="#技术架构" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p><img src="assets/%E7%9C%BC%E5%BA%95%E9%95%9C%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84%E5%9B%BE.png" alt="眼底镜项目架构图"></p>
+<p><strong>核心技术栈</strong>：</p>
+<table>
+	<thead>
+			<tr>
+					<th>层次</th>
+					<th>技术选型</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>RTOS</td>
+					<td>FreeRTOS（多任务调度 + 资源管理）</td>
+			</tr>
+			<tr>
+					<td>视频采集</td>
+					<td>UVC 协议（USB Video Class）</td>
+			</tr>
+			<tr>
+					<td>视频传输</td>
+					<td>WebSocket（实时流推送）</td>
+			</tr>
+			<tr>
+					<td>内存管理</td>
+					<td>自研 Buffer Pool + DMA 零拷贝</td>
+			</tr>
+			<tr>
+					<td>设计模式</td>
+					<td>Observer（订阅/分发）· Singleton（单例）</td>
+			</tr>
+			<tr>
+					<td>调试工具</td>
+					<td>逻辑分析仪 · 示波器</td>
+			</tr>
+			<tr>
+					<td>语言</td>
+					<td>C（函数指针 / 位域 / 引用计数）</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h3 id="高并发异步系统架构">高并发异步系统架构<a href="#高并发异步系统架构" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p><strong>问题</strong>：流媒体处理场景下，视频采集、编码、传输多任务并发执行，原始架构模块紧耦合，在高负载下出现资源竞态和死锁。</p>
+<p><strong>方案</strong>：</p>
+<ul>
+<li>基于 FreeRTOS 重新构建流媒体处理框架</li>
+<li>引入 <strong>Observer（订阅/分发）模式</strong> 实现模块解耦——视频采集模块作为 Publisher，编码和传输模块作为 Subscriber</li>
+<li>使用 <strong>Singleton（单例）模式</strong> 管理全局资源池，避免重复初始化</li>
+</ul>
+<p><strong>效果</strong>：多线程竞态问题消除，系统在高并发场景下稳定运行。</p>
+<hr>
+<h3 id="视频流内存管理调优">视频流内存管理调优<a href="#视频流内存管理调优" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p><strong>问题</strong>：实时视频流频繁触发 <code>malloc/free</code>，导致严重的内存碎片化，且每帧数据在多个模块间拷贝传递，CPU 上下文切换开销过高。</p>
+<p><strong>方案</strong>：</p>
+<ul>
+<li>独立设计 <strong>基于指针传递的 Buffer Pool（缓冲池）</strong> 管理机制</li>
+<li>启动时<strong>预分配</strong>固定数量的大块内存缓冲区</li>
+<li>缓冲区通过指针在各模块间传递，配合 <strong>DMA 零拷贝</strong> 技术规避 CPU 搬运数据</li>
+<li>实现引用计数自动回收，防止内存泄漏</li>
+</ul>
+<p><strong>效果</strong>：内存碎片化减少，CPU 上下文切换开销降低，视频流帧率稳定。</p>
+<hr>
+<h3 id="底层驱动与协议栈重构">底层驱动与协议栈重构<a href="#底层驱动与协议栈重构" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p><strong>问题</strong>：原有 WebSocket 和 UVC 驱动代码耦合度高、可读性差，新增功能和排查 bug 困难。</p>
+<p><strong>方案</strong>：</p>
+<ul>
+<li>使用 C 语言高级特性对驱动逻辑进行重构：
+<ul>
+<li><strong>函数指针</strong>：实现协议状态机的可配置回调</li>
+<li><strong>位域</strong>：紧凑表达硬件寄存器映射，减少内存占用</li>
+<li><strong>引用计数</strong>：管理 UVC 帧缓冲的生命周期</li>
+</ul>
+</li>
+<li>负责底层软硬协同联调，验证协议栈在弱网、丢包、乱序等异常场景下的一致性</li>
+</ul>
+<p><strong>效果</strong>：代码可维护性提升，新增协议扩展时间从数天缩短至数小时。</p>
+<hr>
+<h3 id="全链路系统排障">全链路系统排障<a href="#全链路系统排障" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p><strong>问题</strong>：样机在特定工况下出现视频信号间歇性抖动，软件侧排查无果，怀疑为硬件问题。</p>
+<p><strong>方案</strong>：</p>
+<ul>
+<li>使用<strong>逻辑分析仪</strong>捕获通信总线时序，确认协议层无异常</li>
+<li>使用<strong>示波器</strong>逐级测量电源路径（DCDC → LDO），发现 DCDC 模块在负载突变时动态响应滞后，导致瞬时压降触发信号毛刺</li>
+<li>与硬件工程师协同调整电源滤波方案，增加关键节点的去耦电容</li>
+</ul>
+<p><strong>效果</strong>：信号抖动消除，样机在高干扰环境下通信可靠。</p>
+<hr>
+<p><img src="assets/%E4%BA%8C%E4%BB%A3%E6%9C%BA%E5%8E%9F%E5%9E%8B.jpg" alt="二代机原型"></p>
+<h3 id="电源树设计">电源树设计<a href="#电源树设计" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p><img src="assets/%E6%95%B4%E6%9C%BA%E7%94%B5%E6%BA%90%E6%A0%91.png" alt="整机电源树"></p>
+<p><strong>问题</strong>：原型机采用单节 18650 锂电池供电（标称 3.7V，满电 4.2V），而系统各模块对电压需求差异显著——ESP32-P4 核心板需 3.3V，摄像头发射组件需 12V 驱动，USB/UVC 外设需 5V。如何在紧凑的便携设备内实现高效、低噪声的多路电源转换，是硬件设计的关键挑战。</p>
+<p><strong>方案</strong>：</p>
+<ul>
+<li><strong>Boost 升压级</strong>：18650 电池经 Boost DC-DC 升压至 12V，和5V，为摄像头发射组件提供稳定驱动，以及摄像头外设供电</li>
+<li><strong>LDO 降压级</strong>：18650 经 LDO 降压至 3.3V（MCU 及逻辑电路），采用这种隔离的方式主要使防止纹波导致单片机重启或故障</li>
+<li><strong>电源滤波与去耦</strong>：在 DCDC 输出端、LDO 输入输出端就近布置去耦电容，抑制开关噪声；12V LED 回路单独走线，避免大电流脉动耦合至模拟前端</li>
+</ul>
+<p><strong>效果</strong>：稳定输出 3.3V/5V/12V 三路供电，满足各模块用电需求，成像信号链路不受电源噪声干扰。</p>
+<p><img src="assets/%E4%BA%8C%E4%BB%A3%E6%9C%BA%E4%BE%9B%E7%94%B5%E9%83%A8%E5%88%86.jpg" alt="二代机供电部分"></p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2026 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

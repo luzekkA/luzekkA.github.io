@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>USB on My New Hugo Site</title>
+		<link>http://localhost:1313/tags/usb/</link>
+		<description>Recent content in USB on My New Hugo Site</description>
+		<generator>Hugo</generator>
+		<language>zh-cn</language>
+		
+		
+		
+		
+			<lastBuildDate>Wed, 18 Mar 2026 16:20:42 +0800</lastBuildDate>
+		
+			<atom:link href="http://localhost:1313/tags/usb/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>UVC使用</title>
+				<link>http://localhost:1313/posts/uvc/</link>
+				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
+				<guid>http://localhost:1313/posts/uvc/</guid>
+				<description>&lt;h1 id=&#34;uvc使用&#34;&gt;UVC使用&lt;/h1&gt;&#xA;&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;esp_err_t uvc_start(void)&#xA;{&#xA;    rx_frames_queue = xQueueCreate(3, sizeof(uvc_host_frame_t *));&#xA;    assert(rx_frames_queue);&#xA;&#xA;    // Install USB Host driver. Should only be called once in entire application&#xA;    WS_LOGI(&amp;#34;Installing USB Host&amp;#34;);&#xA;    const usb_host_config_t host_config = {&#xA;        .skip_phy_setup = false,&#xA;        .intr_flags = ESP_INTR_FLAG_LEVEL1,&#xA;    };&#xA;    ESP_ERROR_CHECK(usb_host_install(&amp;amp;host_config));&#xA;&#xA;    // Create a task that will handle USB library events&#xA;    BaseType_t task_created = xTaskCreatePinnedToCore(usb_lib_task, &amp;#34;usb_lib&amp;#34;, 4096, NULL, EXAMPLE_USB_HOST_PRIORITY, NULL, tskNO_AFFINITY);&#xA;    assert(task_created == pdTRUE);&#xA;&#xA;    WS_LOGI(&amp;#34;Installing UVC driver&amp;#34;);&#xA;    const uvc_host_driver_config_t uvc_driver_config = {&#xA;        .driver_task_stack_size = 4 * 1024,&#xA;        .driver_task_priority = EXAMPLE_USB_HOST_PRIORITY + 1,&#xA;        .xCoreID = tskNO_AFFINITY,&#xA;        .create_background_task = true,&#xA;    };&#xA;    ESP_ERROR_CHECK(uvc_host_install(&amp;amp;uvc_driver_config));&#xA;&#xA;    task_created = xTaskCreatePinnedToCore(frame_handling_task, &amp;#34;frame_hdl&amp;#34;, 4096, (void *)&amp;amp;stream_config, EXAMPLE_USB_HOST_PRIORITY - 2, NULL, tskNO_AFFINITY);&#xA;    assert(task_created == pdTRUE);&#xA;    return ESP_OK;&#xA;}&#xA;&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;创建队列&#34;&gt;创建队列&lt;/h2&gt;&#xA;&lt;h2 id=&#34;安装usb驱动&#34;&gt;安装USB驱动&lt;/h2&gt;&#xA;&lt;p&gt;frame_callback（帧回调）&lt;/p&gt;</description>
+			</item>
+	</channel>
+</rss>

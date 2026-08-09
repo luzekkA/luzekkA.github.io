@@ -1,158 +1,129 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>My New Hugo Site</title>
-    <link>https://luzekka.github.io/</link>
-    <description>Recent content on My New Hugo Site</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language>
-    <lastBuildDate>Fri, 06 Mar 2026 14:54:18 +0800</lastBuildDate><atom:link href="https://luzekka.github.io/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>如何优雅地结束一个线程Pt2</title>
-      <link>https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</link>
-      <pubDate>Fri, 06 Mar 2026 14:54:18 +0800</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</guid>
-      <description>如何优雅地结束一个线程Pt2 在上一篇中，我们讨论了如何通过 Task Notify 发送控制异步信号来结束线程。但在实际工程中，如果你的任务是一个纯粹的消费者（不断从 Queue 中读取数据并处理），还有一种比有限状态机更优雅、更符合数据流逻辑的方案：哨兵信号（Sentinel/Poison Pill）。
-（二）：哨兵机制与数据同步
-核心思想：将“死亡通知”伪装成“数据” 与其从侧面（Notify）踢任务一脚，不如给它发一份“特殊的快递”。当任务从队列里领到这份快递时，它就知道：“活干完了，该下班了。”
-C
-void worker_task(void *arg) { msg_t msg; for (;;) { // 1. 正常阻塞等待数据 if (xQueueReceive(ctx-&amp;gt;queue, &amp;amp;msg, portMAX_DELAY) == pdPASS) { /* === 关键逻辑：哨兵判定 === */ // 我们定义一种特殊的组合（例如：buf==NULL 且 len==-1）作为终止信号 if (msg.buf == NULL &amp;amp;&amp;amp; msg.len == -1) { break; // 跳出循环，进入清理阶段 } /* === 正常工作区 === */ do_work(msg.buf, msg.len); // 释放数据内存 if(msg.buf) heap_caps_free(msg.buf); } } /* === 清理阶段 === */ // 此时可以确信：队列中该信号之前的所有数据都已处理完毕 cleanup_resources(); printf(&amp;quot;Worker task cleaned up and exiting.</description>
-    </item>
-    
-    <item>
-      <title>从 C 源码到内存布局：编译、链接与启动全过程解析</title>
-      <link>https://luzekka.github.io/posts/c-compile-and-link/</link>
-      <pubDate>Fri, 20 Feb 2026 17:46:18 +0800</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/c-compile-and-link/</guid>
-      <description>[TOC]
-第五部分：虚拟地址空间与内存布局 第11章：栈与堆的底层原理 回顾一下C语言 很好，这一步确实有必要补齐。
-如果不把 栈（stack） 和 堆（heap） 的本质讲清楚，启动代码为什么要先设栈、为什么链接脚本要预留 heap/stack 空间，就会显得“理所当然但没讲透”。
-我们从体系结构 + ABI + 内存布局三个层面讲清楚。
- 一、先纠正一个常见误解  栈和堆不是 C 语言发明的，而是运行时内存管理策略。
- C 语言只是“使用”它们。
-真正决定它们存在的是：
- CPU 调用约定（Calling Convention） ABI 运行时内存布局 链接脚本   二、栈（Stack） 1️⃣ 栈是什么？ 栈是：
- 一块由 CPU 自动维护的连续内存区域，用于函数调用上下文。
- 特点：
- 后进先出（LIFO） 由 SP（Stack Pointer）寄存器指向 通常向低地址增长（ARM/x86 都是）   2️⃣ 栈里存什么？ 以 ARM 为例：
-函数调用时会发生： int foo(int a) { int b = 5; return a + b; } 汇编大致会做：</description>
-    </item>
-    
-    <item>
-      <title>终极FreeRTOS学习清单</title>
-      <link>https://luzekka.github.io/skills/esp32/ultimate_freertos/</link>
-      <pubDate>Wed, 21 Jan 2026 01:48:25 +0800</pubDate>
-      
-      <guid>https://luzekka.github.io/skills/esp32/ultimate_freertos/</guid>
-      <description>一、FreeRTOS 基础认知（必须 100% 勾完） 1. 内核模型与调度机制  能清楚说出 FreeRTOS 是 抢占式实时内核 判定标准： - 能解释什么是抢占 - 能说明 configUSE_PREEMPTION 的作用 能解释 任务切换发生的三种条件 - Tick 中断 - API 主动触发（如 vTaskDelay） - 高优先级任务就绪 判定标准： - 不看资料，能口述完整流程 能解释 优先级调度 + 时间片轮转 判定标准： - 能解释“同优先级任务为什么都会运行”   2. Tick、中断与时间概念  明确 Tick 的来源（SysTick / esp_timer / SYSTIMER） 判定标准： - 能说清 ESP32 的 Tick 不是传统 SysTick 能计算 Tick → 实际时间 判定标准： - 知道 configTICK_RATE_HZ - 能算 vTaskDelay(100) 是多少 ms 明确 Tick 中断 不能做什么 判定标准： - 能说出为什么 ISR 不能阻塞   二、Task（任务）系统（核心能力） 3.</description>
-    </item>
-    
-    <item>
-      <title>如何优雅地结束一个线程Pt1</title>
-      <link>https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</link>
-      <pubDate>Wed, 14 Jan 2026 16:48:25 +0800</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</guid>
-      <description>如何优雅地结束一个线程Pt1 在 FreeRTOS 的实际工程中**“结束一个 task”**远比表面上看起来复杂。
-很多开发者在初期都会选择最直接的方式：
-vTaskDelete(task_handle); 在低负载、低并发、功能简单的 Demo 中，这种做法往往不会立即出问题。 但在多线程、高负载、资源密集的系统中，这种“硬删除”方式，极容易引发隐蔽而致命的问题。
-本文将结合一个真实的 FreeRTOS 使用场景，说明：
- 为什么 vTaskDelete() 在工程中是危险的 问题通常是如何被触发的 什么才是**“优雅结束一个 task”**的正确方式 为什么 Task Notify 是最轻量、最安全的方案之一   问题背景：一个看似无害的发送任务 下面是一个典型的 FreeRTOS task，用于从队列中取数据并通过 WebSocket 发送：
-void ws_send_task(void *arg) { ws_sender_ctx_t *ctx = (ws_sender_ctx_t *)arg; jpeg_msg_t msg; while (1) { if (xQueueReceive(ctx-&amp;gt;queue, &amp;amp;msg, portMAX_DELAY) == pdPASS) { ws_send_all(msg.buf, msg.len, ctx-&amp;gt;sendType, ctx-&amp;gt;channel); if (msg.buf) { heap_caps_free(msg.buf); } // 避免在高负载下持续占用 CPU  vTaskDelay(1); } } } 这个 task 看起来非常“规矩”：</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt2c%E8%AF%AD%E8%A8%80%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt2c%E8%AF%AD%E8%A8%80%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6/</guid>
-      <description>C 源码到硬件执行Pt1——C源码到Bin裸二进制文件 [toc]
-纠正误解：内存分区是谁定义的？
-栈（Stack）：自动维护的上下文
-2. RISC-V 调用约定下的栈帧：
- 关键寄存器：sp (Stack Pointer, x2) 与 s0/fp (Frame Pointer, x8)。 栈帧（Stack Frame）里存什么：  返回地址 (ra)：函数执行完回哪去？ 保存寄存器 (s0-s11)：保护现场。 局部变量：为什么函数退出后局部变量会“消失”？    3. 实例拆解（RISC-V 汇编视角）：
-堆（Heap）：受控的自由空间
-1. 堆的特性：手动申请（malloc）、手动释放（free）、向高地址增长。
-2. 堆与栈的“边界感”：
- 栈是自顶向下，堆是自底向上。 中间的空白区域：进程的弹性增长空间。  3. 思考点：为什么裸机开发中，如果不初始化堆管理器（如 _sbrk），malloc 就无法使用？
-五、 全局区：Data 与 BSS 的运行时转场
- 1. 已初始化数据（.data）：  它们在内存中的“永久居住权”。 为什么修改全局变量不需要移动 sp？   2. 未初始化数据（.bss）：  回顾 Pt1：为什么它在磁盘里不占空间。 运行时真相：在程序入口（_start）处被清零。    六、 内存权限：只读区（Text / RO Data）</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://luzekka.github.io/posts/esp32-websocket/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/esp32-websocket/</guid>
-      <description>ESP32 websocket 启动webserver 创建http服务监听端口
-初始化一些全局变量
-start_webserver(void){ httpd_handle_t server = NULL; httpd_config_t config = HTTPD_DEFAULT_CONFIG(); httpd_start(&amp;amp;server, &amp;amp;config); static const httpd_uri_t ws = { .uri = &amp;#34;/ws&amp;#34;, .method = HTTP_GET, .handler = handler, .user_ctx = NULL, .is_websocket = true}; httpd_register_uri_handler(server, &amp;amp;ws); //httpd_register_uri_handler 注册 URL  // 初始化广播所需的全局状态  //把这个server给全局变量  s_server_handle = server; if (!s_ws_lock) { //!s_ws_lock判断锁有没有被创建  s_ws_lock = xSemaphoreCreateMutex(); } for (int i = 0; i &amp;lt; WS_MAX_CLIENTS; ++i) { s_client_fds[i] = -1; } ESP_LOGI(TAG, &amp;#34;WebSocket server ready&amp;#34;); return server; } handler函数 然后我访问的时候就会进入到handler函数</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://luzekka.github.io/posts/ram/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/ram/</guid>
-      <description>使用SRAM Macro替换RTL代码中的仿真用RAM [TOC]
-1.根据处理器实际使用的RAM，使用MemoryCompiler生成RAM的Macro 如果你不清楚实际使用的RAM大小，可以先跑一次综合，然后在mapped文件夹中寻找对应的文件，然后在文件中寻找RAM的大小信息，例如：
-module sirv_sim_ram_DP8192_FORCE_X2ZERO0_DW64_MW8_AW13 ( clk, din, addr, cs, we, wem, dout ); input [63:0] din; input [12:0] addr; input [7:0] wem; output [63:0] dout; input clk, cs, we; endmodule module sirv_sim_ram_DP16384_FORCE_X2ZERO1_DW32_MW4_AW14 ( clk, din, addr, cs, we, wem, dout ); input [31:0] din; input [13:0] addr; input [3:0] wem; output [31:0] dout; input clk, cs, we; endmodule 从mapped的.v文件中可以找到以上信息，由此可以看出主要使用了两种尺寸的RAM
-   属性 值     Instance Name SRAM_4096x64_MW8   Number of Words 4096   Number of Bits 64   Frequency &amp;lt;MHz&amp;gt; 200   Multiplexer Width 8   Word Partition Size 8       属性 值     Instance Name SRAM_2048x32_MW4   Number of Words 2048   Number of Bits 32   Frequency &amp;lt;MHz&amp;gt; 200   Multiplexer Width 4   Word Partition Size 8    你可以使用上述参数，然后在PDK对应的MemoryCompiler中生成对应的.</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://luzekka.github.io/posts/uvc/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/uvc/</guid>
-      <description>UVC使用 esp_err_t uvc_start(void) { rx_frames_queue = xQueueCreate(3, sizeof(uvc_host_frame_t *)); assert(rx_frames_queue); // Install USB Host driver. Should only be called once in entire application WS_LOGI(&amp;quot;Installing USB Host&amp;quot;); const usb_host_config_t host_config = { .skip_phy_setup = false, .intr_flags = ESP_INTR_FLAG_LEVEL1, }; ESP_ERROR_CHECK(usb_host_install(&amp;amp;host_config)); // Create a task that will handle USB library events BaseType_t task_created = xTaskCreatePinnedToCore(usb_lib_task, &amp;quot;usb_lib&amp;quot;, 4096, NULL, EXAMPLE_USB_HOST_PRIORITY, NULL, tskNO_AFFINITY); assert(task_created == pdTRUE); WS_LOGI(&amp;quot;Installing UVC driver&amp;quot;); const uvc_host_driver_config_t uvc_driver_config = { .</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://luzekka.github.io/posts/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</guid>
-      <description>图像处理 最邻近缩放算法
-// 简单 RGB565 最近邻缩放：将 src (sw x sh) 缩放到 dst (dw x dh)
-static void rgb565_scale_nearest(const uint16_t *src, int sw, int sh, uint16_t *dst, int dw, int dh) { for (int y = 0; y &amp;lt; dh; ++y) { int sy = (y * sh) / dh; // 对应源行  const uint16_t *src_line = src + sy * sw; uint16_t *dst_line = dst + y * dw; for (int x = 0; x &amp;lt; dw; ++x) { int sx = (x * sw) / dw; dst_line[x] = src_line[sx]; } } } 就是按行优先，一行一行处理，然后先计算出对应源的行与目的行</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://luzekka.github.io/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/</guid>
-      <description>static
-虽然在foo.c中定义了函数foo，但这个函数只具有Internal Linkage，只有在foo.c中多次声明才表示同一个函数，而在main.c中声明就不表示它了。如果把foo.c编译成目标文件，函数名foo在其中是一个LOCAL的符号，不参与链接过程，所以在链接时，main.c中用到一个External Linkage的foo函数，链接器却找不到它的定义在哪儿，无法确定它的地址，也就无法做符号解析，只好报错。凡是被多次声明的变量或函数，必须有且只有一个声明是定义，如果有多个定义，或者一个定义都没有，链接器就无法完成链接。
-所以static声明的东西只能在本地文件里使用</description>
-    </item>
-    
-    <item>
-      <title>C 源码到硬件执行Pt1——C源码到Bin裸二进制文件</title>
-      <link>https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://luzekka.github.io/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</guid>
-      <description>本文深入剖析从 C 源码到二进制镜像的转化全过程，解密 ELF 文件如何通过 Section 与 Segment 的双重視角，完成从“逻辑代码”向“硬件物理映射”的跨越。</description>
-    </item>
-    
-    <item>
-      <title>ESP32 FreeRTOS Checklist</title>
-      <link>https://luzekka.github.io/skills/esp32/freertos/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://luzekka.github.io/skills/esp32/freertos/</guid>
-      <description>基础  Task 创建与删除 Queue / Semaphore Event Group Task Watchdog  进阶  双核调度（PRO / APP） Stack overflow 定位 多任务死锁分析  </description>
-    </item>
-    
-  </channel>
+	<channel>
+		<title>My New Hugo Site</title>
+		<link>http://localhost:1313/</link>
+		<description>Recent content on My New Hugo Site</description>
+		<generator>Hugo</generator>
+		<language>zh-cn</language>
+		
+		
+		
+		
+			<lastBuildDate>Wed, 05 Aug 2026 12:00:00 +0800</lastBuildDate>
+		
+			<atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>ChatChat 聊聊APP</title>
+				<link>http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/chatchat-%E8%81%8A%E8%81%8Aapp/</link>
+				<pubDate>Wed, 05 Aug 2026 12:00:00 +0800</pubDate>
+				<guid>http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/chatchat-%E8%81%8A%E8%81%8Aapp/</guid>
+				<description>单机优先、零自建服务器成本、隐私本地化的 AI 记忆助手与理性咨询 App，将人生经历沉淀为本地可检索的长期语义记忆。</description>
+			</item>
+			<item>
+				<title>“支持RV32I指令集的RISC-V多周期CPU的设计与FPGA实现”</title>
+				<link>http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/</link>
+				<pubDate>Sat, 01 Aug 2026 12:00:00 +0800</pubDate>
+				<guid>http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/rv32i%E6%8C%87%E4%BB%A4%E9%9B%86%E7%9A%84risc-v%E5%A4%9A%E5%91%A8%E6%9C%9Fcpu%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8Efpga%E5%AE%9E%E7%8E%B0/</guid>
+				<description>“设计并实现了一款支持 RV32I 基础指令集的 RISC-V 多周期 CPU，基于 AXI4 总线完成 SoC 集成，并搭建了从 RTL 硬件到 C 代码的全栈工程生态。”</description>
+			</item>
+			<item>
+				<title>Linux 图像处理中间件平台</title>
+				<link>http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
+				<pubDate>Mon, 20 Jul 2026 12:00:00 +0800</pubDate>
+				<guid>http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/linux%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6/</guid>
+				<description>基于共享内存零拷贝 + UDS 轻量信令的高性能图像处理中间件，C/Python 混合架构，峰值 1340 QPS，端到端延迟 &amp;lt; 3ms。</description>
+			</item>
+			<item>
+				<title>非接触式眼底镜</title>
+				<link>http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</link>
+				<pubDate>Wed, 15 Jul 2026 12:00:00 +0800</pubDate>
+				<guid>http://localhost:1313/%E9%A1%B9%E7%9B%AE%E9%9B%86/%E9%9D%9E%E6%8E%A5%E8%A7%A6%E5%BC%8F%E7%9C%BC%E5%BA%95%E9%95%9C/</guid>
+				<description>一款用于基层医疗场景的非接触式眼底成像设备，基于 FreeRTOS 和 ESP32 平台，实现实时视频流采集与传输，辅助医生观察眼部病变。</description>
+			</item>
+			<item>
+				<title>C 源码到硬件执行Pt3——Wakeup the PHY</title>
+				<link>http://localhost:1313/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/</link>
+				<pubDate>Thu, 19 Mar 2026 19:44:21 +0800</pubDate>
+				<guid>http://localhost:1313/posts/c%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt3wakeup-the-phy/</guid>
+				<description>本文拆解了链接脚本（Linker Script）如何通过 LMA 与 VMA 的地址解耦，化解 Flash 只读与 RAM 易失的物理矛盾；透视启动代码（Startup Code）在进入 main 函数前，如何通过栈指针建立、.data 段搬运与 .bss 段清零，完成从静态数据到运行时内存的冷启动。</description>
+			</item>
+			<item>
+				<title>C 源码到硬件执行Pt2——C语言的运行时</title>
+				<link>http://localhost:1313/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt2c%E8%AF%AD%E8%A8%80%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6/</link>
+				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
+				<guid>http://localhost:1313/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt2c%E8%AF%AD%E8%A8%80%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6/</guid>
+				<description>本文深度拆解 C 语言运行时的‘动态秩序’，揭示栈帧回溯、堆分配算法与 sbrk 机制的物理本质，透视硬件 ABI 与启动代码如何共同构建出从局部变量到动态内存的逻辑分区。</description>
+			</item>
+			<item>
+				<title>UVC使用</title>
+				<link>http://localhost:1313/posts/uvc/</link>
+				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
+				<guid>http://localhost:1313/posts/uvc/</guid>
+				<description>基于 ESP32 的 UVC（USB Video Class）协议实战，涵盖 USB Host 驱动安装、UVC 设备枚举与帧队列管理。</description>
+			</item>
+			<item>
+				<title>一些神奇的C语言关键字</title>
+				<link>http://localhost:1313/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/</link>
+				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
+				<guid>http://localhost:1313/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/</guid>
+				<description>深入剖析 static、extern、volatile 等 C 语言关键字的底层语义与链接行为。</description>
+			</item>
+			<item>
+				<title>使用SRAM Macro替换RTL代码中的仿真用RAM</title>
+				<link>http://localhost:1313/posts/%E4%BD%BF%E7%94%A8sram-macro%E6%9B%BF%E6%8D%A2rtl%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BB%BF%E7%9C%9F%E7%94%A8ram/</link>
+				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
+				<guid>http://localhost:1313/posts/%E4%BD%BF%E7%94%A8sram-macro%E6%9B%BF%E6%8D%A2rtl%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BB%BF%E7%9C%9F%E7%94%A8ram/</guid>
+				<description>本文记录了在数字 IC 综合流程中，如何通过 MemoryCompiler 生成物理 SRAM Macro 并替换 RTL 仿真模型的过程。涵盖了从 mapped 网表尺寸提取、SRAM 拼接逻辑实现到 Design Compiler 链路库配置的完整实战路径。</description>
+			</item>
+			<item>
+				<title>邻近图像缩放算法</title>
+				<link>http://localhost:1313/posts/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</link>
+				<pubDate>Wed, 18 Mar 2026 16:20:42 +0800</pubDate>
+				<guid>http://localhost:1313/posts/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</guid>
+				<description>从零实现 RGB565 格式的最近邻图像缩放算法，逐行映射源像素到目标像素，适合嵌入式设备上的轻量级图像缩放场景。</description>
+			</item>
+			<item>
+				<title>如何优雅地结束一个线程Pt2</title>
+				<link>http://localhost:1313/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</link>
+				<pubDate>Fri, 06 Mar 2026 14:54:18 +0800</pubDate>
+				<guid>http://localhost:1313/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt2/</guid>
+				<description>FreeRTOS 中 task 优雅退出的工程级实践的第二集</description>
+			</item>
+			<item>
+				<title>C 源码到硬件执行Pt1——C源码到Bin裸二进制文件</title>
+				<link>http://localhost:1313/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</link>
+				<pubDate>Mon, 02 Mar 2026 17:46:18 +0800</pubDate>
+				<guid>http://localhost:1313/posts/c-%E6%BA%90%E7%A0%81%E5%88%B0%E7%A1%AC%E4%BB%B6%E6%89%A7%E8%A1%8Cpt1c%E6%BA%90%E7%A0%81%E5%88%B0bin%E8%A3%B8%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6/</guid>
+				<description>本文深入剖析从 C 源码到二进制镜像的转化全过程，解密 ELF 文件如何通过 Section 与 Segment 的双重視角，完成从“逻辑代码”向“硬件物理映射”的跨越。</description>
+			</item>
+			<item>
+				<title>ESP32 websocket</title>
+				<link>http://localhost:1313/posts/esp32-websocket/</link>
+				<pubDate>Fri, 20 Feb 2026 17:46:18 +0800</pubDate>
+				<guid>http://localhost:1313/posts/esp32-websocket/</guid>
+				<description>在 ESP32 上搭建 WebSocket 服务端，涵盖 HTTP Server 启动、WebSocket 握手注册、多客户端管理与互斥锁广播机制。</description>
+			</item>
+			<item>
+				<title>ESP32 FreeRTOS Checklist</title>
+				<link>http://localhost:1313/skills/esp32/freertos/</link>
+				<pubDate>Wed, 21 Jan 2026 01:48:25 +0800</pubDate>
+				<guid>http://localhost:1313/skills/esp32/freertos/</guid>
+				<description>ESP32 FreeRTOS 开发核心能力清单</description>
+			</item>
+			<item>
+				<title>终极FreeRTOS学习清单</title>
+				<link>http://localhost:1313/skills/esp32/ultimate_freertos/</link>
+				<pubDate>Wed, 21 Jan 2026 01:48:25 +0800</pubDate>
+				<guid>http://localhost:1313/skills/esp32/ultimate_freertos/</guid>
+				<description>一份FreeRTOS 终极能力清单</description>
+			</item>
+			<item>
+				<title>如何优雅地结束一个线程Pt1</title>
+				<link>http://localhost:1313/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</link>
+				<pubDate>Wed, 14 Jan 2026 16:48:25 +0800</pubDate>
+				<guid>http://localhost:1313/posts/%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85%E5%9C%B0%E7%BB%93%E6%9D%9F%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8Bpt1/</guid>
+				<description>FreeRTOS 中 task 优雅退出的工程级实践</description>
+			</item>
+	</channel>
 </rss>

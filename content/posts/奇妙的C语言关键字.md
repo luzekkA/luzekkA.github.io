@@ -1,11 +1,16 @@
 ---
-title: "C语言关键字"
+title: 一些神奇的C语言关键字
 date: 2026-03-18T16:20:42+08:00
-draft: true
-toc : true
-tags: ["C语言", "编译器", "链接", "操作系统"]
-categories: ["底层原理"]
-summary: "本文深度拆解 C 语言运行时的‘动态秩序’，揭示栈帧回溯、堆分配算法与 sbrk 机制的物理本质，透视硬件 ABI 与启动代码如何共同构建出从局部变量到动态内存的逻辑分区。"
+draft: false
+toc: true
+tags:
+  - C语言
+  - 编译器
+  - 链接
+  - 操作系统
+categories:
+  - 底层原理
+summary: 深入剖析 static、extern、volatile 等 C 语言关键字的底层语义与链接行为。
 ---
 
 static

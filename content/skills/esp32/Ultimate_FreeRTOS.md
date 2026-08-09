@@ -1,11 +1,12 @@
-+++
-title = "终极FreeRTOS学习清单"
-date = "2026-01-21T1:48:25+08:00"
-toc = true
-author = "LuzekkA"
-tags = ["FreeRTOS", "并发"]
-description = "一份FreeRTOS 终极能力清单"
-+++
+---
+title: "终极FreeRTOS学习清单"
+date: 2026-01-21T01:48:25+08:00
+draft: false
+toc: true
+tags: ["FreeRTOS", "并发"]
+categories: ["嵌入式"]
+summary: "一份FreeRTOS 终极能力清单"
+---
 
 ## 一、FreeRTOS 基础认知（必须 100% 勾完）
 

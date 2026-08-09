@@ -1,8 +1,8 @@
 ---
 title: "C 源码到硬件执行Pt1——C源码到Bin裸二进制文件"
-date: 2026-03-2T17:46:18+08:00
+date: 2026-03-02T17:46:18+08:00
 draft: false
-toc : true
+toc: true
 tags: ["C语言", "编译器", "链接", "操作系统"]
 categories: ["底层原理"]
 summary: "本文深入剖析从 C 源码到二进制镜像的转化全过程，解密 ELF 文件如何通过 Section 与 Segment 的双重視角，完成从“逻辑代码”向“硬件物理映射”的跨越。"

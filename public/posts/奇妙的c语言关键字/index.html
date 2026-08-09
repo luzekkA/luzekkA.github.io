@@ -1,62 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1314&amp;path=livereload" data-no-instant defer></script>
   
-    <title> :: My New Hugo Site</title>
+    <title>一些神奇的C语言关键字 :: My New Hugo Site</title>
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="static
-虽然在foo.c中定义了函数foo，但这个函数只具有Internal Linkage，只有在foo.c中多次声明才表示同一个函数，而在main.c中声明就不表示它了。如果把foo.c编译成目标文件，函数名foo在其中是一个LOCAL的符号，不参与链接过程，所以在链接时，main.c中用到一个External Linkage的foo函数，链接器却找不到它的定义在哪儿，无法确定它的地址，也就无法做符号解析，只好报错。凡是被多次声明的变量或函数，必须有且只有一个声明是定义，如果有多个定义，或者一个定义都没有，链接器就无法完成链接。
-所以static声明的东西只能在本地文件里使用" />
+<meta name="description" content="深入剖析 static、extern、volatile 等 C 语言关键字的底层语义与链接行为。" />
 <meta name="keywords" content="" />
 
   <meta name="robots" content="noodp" />
 
-<link rel="canonical" href="https://luzekka.github.io/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/" />
+<link rel="canonical" href="http://localhost:1314/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/" />
 
 
 
 
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/code.min.c4581949edab7810737609fc5568852bcd908945f14561e366dcd2300a370545.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/main.min.36833afd348409fc6c3d09d0897c5833d9d5bf1ff31f5e60ea3ee42ce2b1268c.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/menu.min.3c17467ebeb3d38663dce68f71f519901124fa5cbb4519b2fb0667a21e9aca39.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/post.min.e6dddd258e64c83e05cec0cd49c05216742d42fc8ecbfbe6b67083412b609bd3.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/syntax.min.a0773cce9310cb6d8ed23e50f005448facf29a53001b57e038828daa466b25c0.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/syntax.min.a2cc694a9b481f15d41722bffc2cc54eea4c4f74fd9072b0b33253604c22606e.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
 
   
-  <link rel="stylesheet" href="https://luzekka.github.io/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+  <link rel="stylesheet" href="http://localhost:1314/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
 
 
 
@@ -64,8 +62,8 @@
 
 
 
-<link rel="shortcut icon" href="https://luzekka.github.io/favicon.png">
-<link rel="apple-touch-icon" href="https://luzekka.github.io/apple-touch-icon.png">
+<link rel="shortcut icon" href="http://localhost:1314/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1314/apple-touch-icon.png">
 
 
 <meta name="twitter:card" content="summary" />
@@ -74,18 +72,20 @@
 
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="">
-<meta property="og:description" content="static
-虽然在foo.c中定义了函数foo，但这个函数只具有Internal Linkage，只有在foo.c中多次声明才表示同一个函数，而在main.c中声明就不表示它了。如果把foo.c编译成目标文件，函数名foo在其中是一个LOCAL的符号，不参与链接过程，所以在链接时，main.c中用到一个External Linkage的foo函数，链接器却找不到它的定义在哪儿，无法确定它的地址，也就无法做符号解析，只好报错。凡是被多次声明的变量或函数，必须有且只有一个声明是定义，如果有多个定义，或者一个定义都没有，链接器就无法完成链接。
-所以static声明的东西只能在本地文件里使用" />
-<meta property="og:url" content="https://luzekka.github.io/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/" />
+<meta property="og:title" content="一些神奇的C语言关键字">
+<meta property="og:description" content="深入剖析 static、extern、volatile 等 C 语言关键字的底层语义与链接行为。" />
+<meta property="og:url" content="http://localhost:1314/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/" />
 <meta property="og:site_name" content="My New Hugo Site" />
 
-  <meta property="og:image" content="https://luzekka.github.io/og-image.png">
+  <meta property="og:image" content="http://localhost:1314/og-image.png">
 
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="627">
 
+  <meta property="article:section" content="底层原理" />
+
+
+  <meta property="article:published_time" content="2026-03-18 16:20:42 &#43;0800 CST" />
 
 
 
@@ -107,7 +107,7 @@
   <header class="header">
   <div class="header__inner">
     <div class="header__logo">
-      <a href="https://luzekka.github.io/">
+      <a href="http://localhost:1314/">
   <div class="logo">
     Terminal
   </div>
@@ -122,6 +122,10 @@
       
         
           <li><a href="/skills/">Skills</a></li>
+        
+      
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/">作品集</a></li>
         
       
       
@@ -141,6 +145,10 @@
           <li><a href="/skills/" >Skills</a></li>
         
       
+        
+          <li><a href="/%E9%A1%B9%E7%9B%AE%E9%9B%86/" >作品集</a></li>
+        
+      
     
   </ul>
 </nav>
@@ -153,14 +161,33 @@
     
 <article class="post">
   <h1 class="post-title">
-    <a href="https://luzekka.github.io/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/"></a>
+    <a href="http://localhost:1314/posts/%E5%A5%87%E5%A6%99%E7%9A%84c%E8%AF%AD%E8%A8%80%E5%85%B3%E9%94%AE%E5%AD%97/">一些神奇的C语言关键字</a>
   </h1>
-  <div class="post-meta"></div>
+  <div class="post-meta"><time class="post-date">2026-03-18</time></div>
 
+  
+    <span class="post-tags">
+      
+      #<a href="http://localhost:1314/tags/c%E8%AF%AD%E8%A8%80/">C语言</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/%E7%BC%96%E8%AF%91%E5%99%A8/">编译器</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/%E9%93%BE%E6%8E%A5/">链接</a>&nbsp;
+      
+      #<a href="http://localhost:1314/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>&nbsp;
+      
+    </span>
   
   
 
 
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents"></nav>
+    </div>
   
 
   <div class="post-content"><div>

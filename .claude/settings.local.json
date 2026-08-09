@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat archetypes/*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/LuzekkA/Desktop/Blog/luzekkA.github.io/**)",
+      "Bash(break)",
+      "Bash(done)",
+      "Bash(ls:*)",
+      "Bash(find C:/Users/LuzekkA/Desktop/Blog/luzekkA.github.io/public/项目集/ -name *.png -o -name *.jpg)",
+      "Bash(mv \"非接触式眼底镜/非接触式眼底镜.md\" \"非接触式眼底镜/index.md\")",
+      "Bash(mv \"Linux图像处理中间件/Linux图像处理中间件.md\" \"Linux图像处理中间件/index.md\")",
+      "Bash(mv \"RV32I指令集的RISC-V多周期CPU的设计与FPGA实现/RV32I指令集的RISC-V多周期CPU的设计与FPGA实现.md\" \"RV32I指令集的RISC-V多周期CPU的设计与FPGA实现/index.md\")",
+      "Bash(mv \"ChatChat 聊聊APP/ChatChat 聊聊APP.md\" \"ChatChat 聊聊APP/index.md\")"
+    ]
+  }
+}
