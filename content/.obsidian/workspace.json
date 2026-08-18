@@ -13,15 +13,30 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+                "file": "posts/奇妙的C语言关键字.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "使用SRAM Macro替换RTL代码中的仿真用RAM"
+              "title": "奇妙的C语言关键字"
+            }
+          },
+          {
+            "id": "1da134460376b3d3",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "posts/单线通讯——半双工的秘密.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "单线通讯——半双工的秘密"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -99,7 +114,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+                "file": "posts/单线通讯——半双工的秘密.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -194,7 +209,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -210,18 +226,22 @@
       "smart-connections:Toggle Footer Connections": false
     }
   },
-  "active": "3c11f667d93bc08b",
+  "active": "1da134460376b3d3",
   "lastOpenFiles": [
+    "posts/图像处理.md",
+    "Template/博客模板.md",
+    "posts/单线通讯——半双工的秘密.md",
+    "posts/奇妙的C语言关键字.md",
+    "posts/C源码到硬件执行Pt3——Wakeup the PHY.md",
+    "Invalid date.md",
+    "posts/如何优雅地结束一个线程Pt1.md",
+    "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+    "Template",
     "posts/UVC.md",
     "posts/ESP32 websocket.md",
-    "posts/C源码到硬件执行Pt3——Wakeup the PHY.md",
     "posts/C 源码到硬件执行Pt2——C语言的运行时.md",
     "posts/C 源码到硬件执行Pt1——C源码到Bin裸二进制文件.md",
-    "posts/图像处理.md",
-    "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
     "posts/如何优雅地结束一个线程Pt2.md",
-    "posts/如何优雅地结束一个线程Pt1.md",
-    "posts/奇妙的C语言关键字.md",
     "posts/c-compile-and-link.md",
     "项目集/Linux图像处理中间件/index.md",
     "项目集/Linux图像处理中间件/assets/stress_report_dashboard.png",
@@ -231,7 +251,6 @@
     "skills/_index.md",
     "项目集/RV32I指令集的RISC-V多周期CPU的设计与FPGA实现/index.md",
     "Blog.base",
-    "未命名.md",
     "项目集/_index.md"
   ]
 }
