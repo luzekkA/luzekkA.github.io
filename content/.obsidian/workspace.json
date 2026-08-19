@@ -56,7 +56,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
               "title": "文件列表"
@@ -174,7 +176,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+                "file": "posts/单线通讯——半双工的秘密.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -203,12 +205,12 @@
               "title": "smart-connections-view"
             }
           }
-        ]
+        ],
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -218,10 +220,13 @@
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
-      "bases:新建数据库": false
+      "bases:新建数据库": false,
+      "smart-connections:Smart Connections: Open random connection": false,
+      "smart-connections:Smart Connections: Open connections view": false,
+      "smart-connections:Toggle Footer Connections": false
     }
   },
-  "active": "1da134460376b3d3",
+  "active": "374652b1c8be832b",
   "lastOpenFiles": [
     "posts/奇妙的C语言关键字.md",
     "posts/单线通讯——半双工的秘密.md",
