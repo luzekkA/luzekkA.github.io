@@ -56,9 +56,7 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false,
-                "showSearch": false,
-                "searchQuery": ""
+                "autoReveal": false
               },
               "icon": "lucide-folder-closed",
               "title": "文件列表"
@@ -191,8 +189,8 @@
             "state": {
               "type": "smart-env-status-view",
               "state": {},
-              "icon": "gauge",
-              "title": "Smart Environment Status"
+              "icon": "lucide-ghost",
+              "title": "smart-env-status-view"
             }
           },
           {
@@ -201,8 +199,8 @@
             "state": {
               "type": "smart-connections-view",
               "state": {},
-              "icon": "smart-connections",
-              "title": "Connections"
+              "icon": "lucide-ghost",
+              "title": "smart-connections-view"
             }
           }
         ]
@@ -220,37 +218,34 @@
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
-      "bases:新建数据库": false,
-      "smart-connections:Smart Connections: Open random connection": false,
-      "smart-connections:Smart Connections: Open connections view": false,
-      "smart-connections:Toggle Footer Connections": false
+      "bases:新建数据库": false
     }
   },
   "active": "1da134460376b3d3",
   "lastOpenFiles": [
-    "posts/图像处理.md",
-    "Template/博客模板.md",
-    "posts/单线通讯——半双工的秘密.md",
     "posts/奇妙的C语言关键字.md",
+    "posts/单线通讯——半双工的秘密.md",
     "posts/C源码到硬件执行Pt3——Wakeup the PHY.md",
-    "Invalid date.md",
-    "posts/如何优雅地结束一个线程Pt1.md",
-    "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
-    "Template",
-    "posts/UVC.md",
-    "posts/ESP32 websocket.md",
     "posts/C 源码到硬件执行Pt2——C语言的运行时.md",
     "posts/C 源码到硬件执行Pt1——C源码到Bin裸二进制文件.md",
+    "Template/博客模板.md",
+    "posts/如何优雅地结束一个线程Pt1.md",
     "posts/如何优雅地结束一个线程Pt2.md",
+    "Invalid date.md",
+    "posts/ESP32 websocket.md",
+    "posts/UVC.md",
+    "skills/_index.md",
+    "posts/图像处理.md",
+    "posts/使用SRAM Macro替换RTL代码中的仿真用RAM.md",
+    "Blog.base",
+    "Template",
     "posts/c-compile-and-link.md",
     "项目集/Linux图像处理中间件/index.md",
     "项目集/Linux图像处理中间件/assets/stress_report_dashboard.png",
     "项目集/Linux图像处理中间件/assets/stress_report_overview.png",
     "项目集/Linux图像处理中间件/assets/stress_report_latency.png",
     "项目集/ChatChat 聊聊APP/index.md",
-    "skills/_index.md",
     "项目集/RV32I指令集的RISC-V多周期CPU的设计与FPGA实现/index.md",
-    "Blog.base",
     "项目集/_index.md"
   ]
 }
